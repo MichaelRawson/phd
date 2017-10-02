@@ -13,6 +13,7 @@ Will use in my literature review later.
 
 ### Axiom/Premise Selection
 
+- [A Survey of Axiom Selection as a Machine Learning Problem](https://people.mpi-inf.mpg.de/~jblanche/axiom_sel.pdf) - general survey of axiom-selection via learning methods.
 - [Deep Network Guided Proof Search](https://arxiv.org/pdf/1701.06972.pdf) - runing a deep neural network in E to select processed clauses.
 - [Deep Sequence Models for Premise Selection](https://arxiv.org/pdf/1606.04442.pdf) - selecting premises from the Mizar corpus with deep recurrent/convolutional nets.
 - [Learning-Assisted Automated Reasoning with Flyspeck](https://link.springer.com/content/pdf/10.1007/s10817-014-9303-3.pdf) - actually largely about HOL->FOL translation and premise-selection, here to avoid reading it again due to the slightly-misleading title.
