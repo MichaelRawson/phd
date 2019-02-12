@@ -1,0 +1,42 @@
+\documentclass{llncs}
+\title{Older or heavier? Decaying gracefully with age/weight shapes.}
+\titlerunning{Dynamic Strategy Priority}
+\authorrunning{Reger \and Rawson}
+\author{Michael Rawson \and Giles Reger}
+\institute{University of Manchester, Manchester, UK}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+Vampire~\cite{vampire} is an automatic theorem prover for first-order logic.
+During proof search in given-clause algorithms, Vampire repeatedly selects clauses from either an \emph{age} or a \emph{weight} queue in a fixed, but configurable \emph{age/weight ratio} (AWR).
+We show that an optimal fixed value of this ratio can produce proofs significantly more quickly on a given problem, and further that varying AWR during proof search can improve upon a fixed ratio.
+Based on this observation we develop several new modes for Vampire which vary AWR according to a ``shape'' during proof search.
+The modes solve a number of new problems in the TPTP~\cite{tptp} benchmark.
+\end{abstract}
+
+\section{Introduction}
+TODO: standard Vampire fluff here.\\
+TODO: explain a generic given-clause algorithm, define clause age and weight.\\
+TODO: remark on portfolio modes - more choice is (sometimes) a good thing.
+
+\section{Optimising Age/Weight Ratios}
+TODO: talk about optimising for fixed age/weight.\\
+TODO: talk about
+
+\section{Variable AWR for Vampire}
+TODO: describe "decay" and "converge" modes for Vampire.\\
+TODO: discuss the effect of the "frequency" flag, plus alternatives.
+
+\section{Experimental Evaluation}
+TODO: analyse (two sets of) results, discuss drop in performance in exchange for uniques.
+
+\section{Future Work}
+TODO: more shapes, better ways of doing frequency decay, integrate into existing strategy schedules.
+
+\section{Conclusions}
+TODO: this is a thing, you can do it, you should do it (?), we can probably do better.
+
+\bibliographystyle{plain}
+\bibliography{references}
+\end{document}
