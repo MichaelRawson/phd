@@ -1,0 +1,59 @@
+\documentclass{easychair}
+\usepackage{cite}
+\newcommand{\Vampire}{{Vampire}}
+\newcommand{\vampire}{\Vampire}
+\newcommand{\Spass}{{\sc Spass}}
+\newcommand{\iprover}{iProver}
+\newcommand{\E}{{\sc E}}
+\newcommand{\zthree}{{\sc Z3}}
+
+\title{Dynamic strategy priority: \\ empower the strong and abandon the weak}
+\author{
+ Michael Rawson \and 
+ Giles Reger
+}
+\institute{University of Manchester, Manchester, UK}
+\authorrunning{Rawson and Reger}
+\titlerunning{Dynamic Strategy Priority}
+
+\begin{document}
+\maketitle
+Many modern automated theorem provers (e.g.\ CVC4\footnote{Whilst SMT solvers are less reliant on heuristic strategies than saturation-based techniques, they still typically employ various strategies, for example for quantifier instantiation.} \cite{CVC4}, E{}~\cite{E}, \iprover{}~\cite{iProver}, \vampire{}~\cite{Vampire}) rely on \emph{portfolio modes}~\cite{portfolio} utilising from tens to hundreds of distinct strategies, of which only a few might solve a hard problem quickly.
+Typically, a portfolio of strategies has a pre-defined order that the prover will execute the strategies in, running each until a strategy succeeds. 
+Portfolios are important as, in practice, there is no best strategy i.e.\ it is uncommon that two hard problems are efficiently solvable by the same strategy.
+However, portfolio execution is not without problems: selecting the optimal ordering and time allocation is hard in general~\cite{predict-success}, and produces overly-rigid, brittle engineering when applied to specific domains, such as those found in TPTP~\cite{TPTP}.
+Moreover, for any particular problem, some lengthy strategies that are successful on other problems are doomed to failure from the outset, but are left to run unchecked by the prover, wasting time that could be spent on more productive strategies.
+
+In this work we first demonstrate correlation between trends in dynamic properties of proof search, and the success or failure of a strategy.
+We then utilise this to implement strategy scheduling, prioritising those strategies most likely to succeed.
+This approach differs from previous work~\cite{E,static1,static2} which attempts to predict successful strategies \emph{a priori} from static features of the input problem; instead we tip running strategies for success based on run-time features and use this information to make scheduling decisions. 
+Initial experiments on Vampire produce a performant neural-network that achieves classification accuracy of 81\% (\(\pm 2\%\)).
+
+\paragraph{Obtaining and filtering Vampire execution data.}
+Modifying Vampire to log execution data for different strategies obtained from its primary portfolio mode\footnote{CASC-mode, a portfolio designed for the CASC competition~\cite{CASC}.} is straightforward, but there are choices to be made along the way.
+First, which data \emph{sources} are interesting?
+As a proof of concept, we focus mostly on the numerical data (e.g.\ the number of generated clauses) that is immediately available in the prover environment, but there is scope here for non-numeric and/or derived data sources that could provide greater insight into the proof state.
+Data was logged at a fixed interval of resolution steps --- unfortunately, this does not necessarily correspond to a fixed amount of time. Addressing this is left as future work.
+Overall, this methodology produces extremely voluminous, irregular data.
+We chose to apply a rolling time average to normalise/reduce trace size, then allow the neural net to do its own feature selection.
+
+\paragraph{Identifying and predicting successful strategies.}
+Being able to predict which strategies are going to succeed, and which will fail (or exceed the time limit) at first seems unlikely.
+However, it is known that the ``slowly-growing search space'' maxim, which states that strategies which minimise the number of derived clauses over time are more likely to succeed, is an effective heuristic for finding good strategies in saturation-based theorem proving~\cite{predict-success}.
+Since the data we use includes the number of derived clauses, among many other features, it appears more plausible that a machine-learnt approach might work at least as well as the slow-growth heuristic alone.
+We engineer a prediction algorithm that attempts to partition traces into ``succeeding'' and ``failing'' classes using a simple neural network. 
+Conveniently, these methods do not usually produce a binary output, but instead some \(f(\mathbf{X}) \in \left[0, 1\right]\) which might be seen as the ``level of confidence'' in success of the trace \(\mathbf{X}\).
+This success score can be used to apply an ordering to executing strategies, allowing ``smart'' dynamic scheduling of strategies.
+
+\paragraph{Smart scheduling for Vampire}
+We show that this abstract predictor can be used in a concrete implementation for the Vampire prover.
+In the modified prover, it is used to run several strategies from Vampire's portfolio in a time-slicing scheduler: at each slice, the most promising strategies are run.
+The eventual aim is to improve Vampire's overall performance, if not in the number of total theorems proved (this will likely not change in this experiment --- if the entire strategy schedule runs and fails, it doesn't matter which way it is ordered), but in the time taken to prove problems.
+Current benchmark results indicate a 10\% average improvement in time, in exchange for losing some problems in the benchmark.
+
+For this demonstration we focus on maximising the accuracy and efficiency of the predictor (a perfect predictor would schedule the best strategy first, every time!), rather than tweaking performance of the scheduler.
+As well as improvements to our prediction techniques, further research might include designing scheduling algorithms which keep predictions as up-to-date as possible, maximise processor utilisation, minimise memory usage/swapping, reduce context-switching overhead, or even minimise calls to the predictor, and observing the effect on prover performance.
+
+\bibliographystyle{plain}
+\bibliography{abstract}
+\end{document}

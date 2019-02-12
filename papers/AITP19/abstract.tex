@@ -1,0 +1,64 @@
+\documentclass{easychair}
+\usepackage{cite}
+\newcommand{\Vampire}{{Vampire}}
+\newcommand{\vampire}{\Vampire}
+\newcommand{\Spass}{{\sc Spass}}
+\newcommand{\iprover}{iProver}
+\newcommand{\E}{{\sc E}}
+\newcommand{\zthree}{{\sc Z3}}
+
+\title{Towards an Efficient Architecture for\\ Intelligent Theorem Provers}
+\author{
+ Michael Rawson \and 
+ Giles Reger
+}
+\institute{University of Manchester, Manchester, UK}
+\authorrunning{Rawson and Reger}
+\titlerunning{Efficient Intelligent Provers}
+
+\begin{document}
+\maketitle
+High-performance automated theorem provers for first-order logic (e.g. CVC4~\cite{CVC4}, E{}~\cite{E}, \iprover{}~\cite{iProver}, \vampire{}~\cite{Vampire}) include hand-coded heuristics to guide proof search, often exposed as individual prover options.
+These heuristics perform well, but have a number of disadvantages including a lack of generality over problems (necessitating \emph{portfolio} modes~\cite{RawsonReger:PAAR2018,portfolio}), inability to learn from experience, and maintenance overhead.
+There is therefore interest in employing machine-learning techniques to guide proof search in automatic theorem provers, with approaches such as FEMaLeCoP~\cite{femalecop}, ENIGMA~\cite{enigma}, or Deep Network Guided Proof Search~\cite{dngps} (DNGPS).
+
+These systems experience a trade-off between the expressivity of their learning algorithms versus the impact of guidance on ``raw'' prover performance.
+At extremes:
+
+\begin{itemize}
+	\item The heuristic is fast, but does not take into account the entire proof state (e.g. the MaLeCoP family), restricting the prover to learning from features.
+	\item The heuristic takes into account the entire proof state (usually via neural networks), but is too slow to use all the time. The DNGPS system runs with the heuristic for a fixed amount of time, then reverts back to the old heuristics thereafter.
+\end{itemize}
+
+\noindent
+Ideally, an intelligent system would guide search based on the structure of the current proof state, while also remaining performant enough to run continuously without significantly affecting prover performance.
+We present a prover architecture which attempts to achieve this ideal, and show that it has several other desirable properties.
+
+\paragraph{Desiderata}
+In such a system we require the following:
+\begin{enumerate}
+	\item \emph{Proof state must be small.} Attempting to evaluate large proof states structurally requires a lot of resources. Saturation-based provers such as E or Vampire can have very large proof states, for example.
+	\item \emph{Evaluation of states must be possible in parallel.} Machine-learning algorithms tend to operate more efficiently in batches. Tree-based approaches (tableau \emph{etc.}) lend themselves to this, whereas saturation provers are inherently sequential.
+	\item \emph{Subgoals must be independent.} If the prover has a notion of (sub-)goals which must be dispatched (such as in tableau or connection provers), these should be independent of the rest of the search space. Otherwise, the learning system is trying to learn while blind to the context of the search.
+\end{enumerate}
+
+\paragraph{Calculus and Algorithm}
+We implement a first-order tableau calculus without unification, with equality, on non-clausal formulae.
+By using this very ``natural'' representation, the hope is that inherent proof structure will be more apparent to machine-learning algorithms, which do not have to invert the process of clausification.
+The tableau space is explored in parallel by means of a UCT-maximising tree search (similar to that employed by MonteCoP~\cite{montecop}), with new goals placed on a global queue for evaluation in batches by means of arbitrary machine-learning methods, currently a GCN~\cite{GCN, gcn-premise}.
+
+\paragraph{Advantages}
+This prover architecture satisfies requirements 1--3, but also shows promise in other areas.
+In terms of reasoning, the calculus used is relatively flexible, allowing for extension to reasoning with theories, induction, and full higher-order logic without modifying the whole prover.
+In terms of efficiency, such a prover can also make full use of multi-core systems, allowing for linear exploration speedup with the number of available cores, eventually saturating the device or core used for running machine-learned algorithms.
+The prover is also well-suited to a hybrid approach in which promising subgoals are dispatched to an existing first-order ATP.
+
+\paragraph{Evaluation and Future Work}
+Evaluation and implementation of an example prover system based on this architecture is ongoing, but initial results are promising, with the system appearing to ``learn to prove'' harder problems based on prior experience with easier problems.
+Future work includes exploring calculus options, optimisation, further exploration of machine-learning methods, and using the prover as a ``pre-processor'' for an existing first-order ATP.
+
+\vspace{-1em}
+
+\bibliographystyle{plain}
+\bibliography{abstract}
+\end{document}

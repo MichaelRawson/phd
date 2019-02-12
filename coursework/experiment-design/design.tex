@@ -1,0 +1,43 @@
+\documentclass{article}
+\usepackage[a4paper]{geometry}
+\title{COMP80131 Assignment 1\\Dynamic Strategy Priority for Vampire}
+\author{Michael Rawson}
+\begin{document}
+\maketitle
+
+\section{Task}
+Modern automated theorem provers (e.g. Vampire~\cite{Vampire}) use a fixed \emph{portfolio} of strategies~\cite{portfolio} to direct search for a proof, of which only a few might solve a hard problem quickly.
+Portfolio provers execute their strategies in sequence, with a pre-defined order, and a time allocation for each strategy.
+However, it is not known whether a strategy will succeed, and is is often the case that a failing strategy is left to churn for considerable time without interruption~\cite{predict-success}.
+We investigate the feasibility of training a machine-learned classifier to predict the success or failure of a strategy from data drawn from an initial period of its execution.
+
+\section{Rationale}
+If it proves possible to classify running strategies, it will then allow the construction of a \emph{portfolio scheduler} which defers execution of strategies the classifier deems less likely to succeed until after more-promising strategies have run.
+In this way, Vampire will find proofs faster on average, theoretically without losing any proofs it found previously.
+The experiment will answer ``can one of a (fixed) list of machine-learning methods produce a statistically-significant classifier for this problem'' --- note that no fixed accuracy is required, as any working classifier will improve the current state of Vampire.
+We hypothesise that at least one method will beat chance.
+The expectation is that most methods will succeed in this, but that no classifier will achieve a high level of accuracy, as intuitively this is a ``hard problem'', similar to that of the undecidable \emph{Entscheidungsproblem}~\cite{turing}.
+
+\section{Methodology}
+The experiment will measure the performance of a fixed set of supervised classification methods.
+Classifiers will be trained on a balanced set of Vampire strategy execution traces, tagged with the strategy's eventual success or failure.
+Performance may then be evaluated by a variety of statistical methods, but all involve using the trained classifier with an ``unseen'' or ``test'' set (to avoid evaluating the classifier's tendency to overfit~\cite{overfitting}) and observing the number of correct vs. incorrect classifications.
+
+\section{Data}
+The training (and test) data will be obtained by running a modified version of Vampire on a set of problems~\cite{TPTP} designed for the CASC~\cite{CASC} benchmark.
+This version will log execution data and the success or failure of strategies.
+Since there are a large number of strategies and many problems, sufficient data may be obtained easily.
+
+\section{Repetition}
+Vampire is now open-source, and results from this experiment will be published.
+Therefore, repetition by other researchers is possible and encouraged.
+Data will be available, but may also be recreated without significant effort.
+
+\section{Analysis}
+Classifier performance will be evaluated by means of \(k\)-fold cross-validation~\cite{cross-validation}.
+This will allow for both reliable estimates of classifier accuracy from all available data, and also calculation of statistical significance tests such as a \(p\)-value from cross-validation results.
+If a classifier exceeds the null hypothesis with high statistical significance, the hypothesis may be accepted.
+
+\bibliographystyle{plain}
+\bibliography{design.bib}
+\end{document}

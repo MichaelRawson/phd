@@ -1,0 +1,73 @@
+\documentclass{article}
+\usepackage{geometry}
+\title{COMP80131 Assignment 2\\Statistical Methods}
+\author{Michael Rawson}
+\begin{document}
+\maketitle
+\section{Corpulence}
+I assume ``uncertainty'' to mean precisely the absolute possible error in the Corpulence Index.
+Define
+\[
+C(m, h) = \frac{m}{h^3}
+\]
+Then the absolute error \(\Delta C\) is given by
+\[
+\Delta C(m, h) = \sqrt{\left(\frac{\partial C}{\partial m}\Delta m\right)^2 + \left(\frac{\partial C}{\partial h}\Delta h\right)^2}
+\]
+which simplifies to
+\[
+\Delta C(m, h) = \frac{\sqrt{h^2\Delta m^2 + 9m^2\Delta h^2}}{h^4}
+\]
+Since \(\Delta m, \Delta h\) are known, this may be used to compute an absolute error for a given mass and height.
+For individual 1, they have a height of 1.6736m, and a mass of 62.51kg.
+Their precise Corpulence Index without allowing for error is 13.335045361004468\ldots and the error in the measurement is 0.7183773671149155\ldots --- therefore, the Corpulence Index may be given as 13.3 \(\pm\) 0.7.
+
+The second sentence is ambiguous.
+I interpret it to mean ``compute the mean, variance and uncertainty in the mean for each of height, mass and CI''.
+Uncertainty in the mean is given by \(\frac{\sigma}{\sqrt{N}}\), where \(\sigma^2\) is the variance.
+\begin{center}
+\begin{tabular}{l c c c}
+& Mean & Variance & Uncertainty in the Mean \\
+\hline
+Height (m) & 1.775 & 0.003108 & 0.00544\\
+Mass (kg) & 80.34 & 132.2 & 1.12\\
+CI (kg\(m^{-3}\)) & 14.46 & 6.489 & 0.249\\
+\end{tabular}
+\end{center}
+
+\section{Clinical Trial}
+The total number of patients in each case is 49.
+With no treatment, 39 patients recovered, compared to 41 with a placebo, and 43 of those treated.
+These data suggest that the ``placebo effect'' has some effect in treating this illness, and that the treatment also has an effect, greater than that of the placebo --- however, these results may not be statistically significant.
+Additionally, the data also suggests that the majority (nearly 80\%) will recover without intervention.
+
+I compute the probability that recovering with a placebo and recovering with the treatment are equally likely --- if this is high, the data does not \emph{strongly} suggest that the treatment is more effective than the placebo.
+To do this, I make some assumptions: I assume that testing a series of individuals for recovery (either from the placebo or the treatment set) forms a Bernoulli process, and hence that the number of recoveries in a sample of size \(N\) (e.g. 49) is binomially-distributed with a prior probability \(p\).
+Hence we can apply Fisher's exact test (\(\chi^2\) could also be appropriate) to the following contingency table:
+
+\begin{center}
+\begin{tabular}{l c c}
+& Placebo & Treatment\\
+\hline
+Recovered & 41 & 43\\
+Did Not Recover & 8 & 6\\
+\end{tabular}
+\end{center}
+
+The exact test returns \(p = 0.7738\), which does not imply at any significance level that the treatment has a different probability of success than the placebo.
+
+From this analysis, I would recommend gathering more data if possible in order to try and establish a more-significant marginal advantage for the treatment.
+It also appears medically suspect that there is a binary ``recovery'' variable, especially considering the demise of those untreated --- this is a very severe ``illness'', on par with the plague! Those who do not perish are unlikely to have recovered fully, so I would recommend recording more nuanced data about patients.
+
+\section{Algorithms}
+First, I compute both the mean and the standard deviation for all the algorithms presented.
+The author's algorithm has the quickest average runtime over the 500 samples, 44.28s, with a standard deviation of 17.62.
+However, the closest competitor (State-of-the-Art 1) is not much slower at 48.13s, with a standard deviation of 17.32, slightly less variable.
+None of the other algorithms are as fast or as consistent as either of these.
+
+To establish whether the author's algorithm performance is \emph{significantly} different (we have already shown it to be faster in this dataset) than the competitor (assuming that the runs are representative of algorithm ``performance'', and that the samples follow a normal distribution), I perform a two-sample \(t\)-test to establish a \(p\)-value for this hypothesis.
+Using the formulae for standard error, \(t\), and degrees of freedom from lectures, the standard error is 1.105, \(t = -3.48\), and there are 997 degrees of freedom.
+Converting this to a \(p\)-value, I obtain \(p = 0.0002\), a highly-significant result.
+
+It should be noted that whether this is of practical significance depends greatly on the target domain.
+\end{document}
