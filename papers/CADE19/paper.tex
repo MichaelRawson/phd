@@ -26,8 +26,65 @@ The modes solve a number of new problems in the TPTP benchmark.
 \todo{remark on portfolio modes --- more choice is (sometimes) a good thing}.
 
 \section{Optimising Age/Weight Ratios}
-\todo{talk about optimising for fixed age/weight}.\\
-\todo{talk about experiments with changing age/weight}.
+\begin{figure}
+	\centering
+	\includegraphics[width=0.8\textwidth]{example-optimal-awr}
+	\caption{
+The number of active clauses reported by Vampire after successful 1-second runs on a TPTP problem.
+A base-2 logarithm is used to produce a continuous scale for the \(x\)-axis.
+For sufficiently negative \(x\), proof search is biased towards age to such an extent that a proof is found via breadth-first search (and hence the number of active clauses remains constant), whereas after \(x\) becomes sufficiently positive, proof search does not terminate for this problem in the given time.
+In between these limits, the function is ``noisy'' and discontinuous.
+These properties are typical for the observed set of problems.
+}
+	\label{fig:example-optimal-awr}
+\end{figure}
+
+\subsection{Fixed AWR}
+Changing Vampire's fixed AWR has a significant effect on the number of clauses required to be processed before a proof is found.
+For example, Figure \ref{fig:example-optimal-awr} shows the effect of varying AWR on an illustrative problem from TPTP: a smaller number of active clauses means that fewer clauses were processed, which in general means that a proof was found faster\footnote{
+It should be noted that if a small number of clauses are extremely expensive to process it may be slower than a larger number of less-expensive clauses, but in general this is a good heuristic measure for prover performance.
+It also avoids reproducibility issues involved with using system timing approaches.
+}.
+On this problem, a good AWR value is over 400\% better by this metric than the worst AWR value.
+
+This experiment was repeated on the whole TPTP problem set, excluding problems Vampire does not support, and problems which were not solved by the default mode in under a second for any AWR value.
+The whole set yielded similar AWR data for 8,123 problems.
+These data show that while there is no ``best'' AWR for the whole set (Figure \ref{fig:no-best-awr}), choosing a good AWR value for a problem is well-rewarded (Figure \ref{fig:optimal-awr-improvement}).
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.8\textwidth]{no-best-awr}
+	\caption{The mean relative performance drop (in terms of activations compared to an optimal value) choosing a single AWR over an entire problem set causes. No setting is significantly ``better'' or ``worse'' than the others, but some have more variance in performance.}
+	\label{fig:no-best-awr}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.8\textwidth]{optimal-awr-improvement}
+	\caption{The distribution of the relative performance gain choosing the best AWR value creates, relative to the worst AWR value.}
+	\label{fig:optimal-awr-improvement}
+\end{figure}
+
+
+\subsection{Variable AWR}
+Although choosing a good AWR value is important, this is covered in part by the use of strategy scheduling~\cite{CADE18} in which many AWR values are tried in sequence (along with other prover options).
+Additionally, a constant AWR fixed for the entire proof search is unlikely to be optimal for any given problem.
+This can be shown by running Vampire with a randomised sequence of age/weight ratios given by a random walk repeatedly, then finding the best after a large number of repetitions.
+Applying this method with 10,000 repetitions to the problem seen earlier (\texttt{PRO017+2}) yields the example AWR trend shown in Figure \ref{fig:random-walk}, which reduces the best number of activations from 330 with a fixed AWR, to 287 with a varying AWR.
+
+In experiments, several AWR ``shapes'' were commonly seen, including:
+\begin{itemize}
+	\item Near-constant, as seen currently.
+	\item A decreasing trend from a higher AWR to a lower AWR.
+	\item An increasing trend from a lower AWR to a higher AWR.
+\end{itemize}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.8\textwidth]{random-walk}
+	\caption{The AWR series that produced the lowest number of activations on a particular problem. This is a search strategy that a single fixed AWR cannot reproduce.}
+	\label{fig:random-walk}
+\end{figure}
 
 \section{Variable AWR for Vampire}
 If changing AWR is sometimes useful for finding proofs more quickly, this could be useful as a Vampire option.
@@ -63,6 +120,8 @@ In practice, decaying from an age-biased initial AWR to 1:1 (or converging backw
 However, age/weight shapes starting with a weight-based AWR were found to be useful in some cases.
 An experimental evaluation of this approach on the TPTP~\cite{tptp} benchmark follows.
 
+\subsection{Decaying AWR}
+\subsection{Converging AWR}
 \todo{analyse (two sets of) results, discuss drop in performance in exchange for uniques}.
 
 \section{Future Work}
