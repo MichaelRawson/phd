@@ -26,6 +26,14 @@ The modes solve a number of new problems in the TPTP benchmark.
 \todo{remark on portfolio modes --- more choice is (sometimes) a good thing}.
 
 \section{Optimising Age/Weight Ratios}
+\subsection{Fixed AWR}
+Changing Vampire's fixed AWR has a significant effect on the number of clauses required to be processed before a proof is found.
+For example, Figure \ref{fig:example-optimal-awr} shows the effect of varying AWR on an illustrative problem from TPTP: a smaller number of active clauses means that fewer clauses were processed, which in general means that a proof was found faster\footnote{
+It should be noted that if a small number of clauses are extremely expensive to process it may be slower than a larger number of less-expensive clauses, but in general this is a good heuristic measure for prover performance.
+It also avoids reproducibility issues involved with using system timing approaches.
+}.
+On this problem, a good AWR value is over 400\% better by this metric than the worst AWR value.
+
 \begin{figure}
 	\centering
 	\includegraphics[width=0.8\textwidth]{example-optimal-awr}
@@ -38,14 +46,6 @@ These properties are typical for the observed set of problems.
 }
 	\label{fig:example-optimal-awr}
 \end{figure}
-
-\subsection{Fixed AWR}
-Changing Vampire's fixed AWR has a significant effect on the number of clauses required to be processed before a proof is found.
-For example, Figure \ref{fig:example-optimal-awr} shows the effect of varying AWR on an illustrative problem from TPTP: a smaller number of active clauses means that fewer clauses were processed, which in general means that a proof was found faster\footnote{
-It should be noted that if a small number of clauses are extremely expensive to process it may be slower than a larger number of less-expensive clauses, but in general this is a good heuristic measure for prover performance.
-It also avoids reproducibility issues involved with using system timing approaches.
-}.
-On this problem, a good AWR value is over 400\% better by this metric than the worst AWR value.
 
 This experiment was repeated on the whole TPTP problem set, excluding problems Vampire does not support, and problems which were not solved by the default mode in under a second for any AWR value.
 The whole set yielded similar AWR data for 8,123 problems.
@@ -97,7 +97,7 @@ However, some details constrain the design space:
 \end{enumerate}
 
 In this work we selected two general trends to explore: a trend away from the original (fixed) AWR toward 1:1 (``decay''), and a trend from 1:1 toward the original setting (``converge'').
-Since a simple linear shape does not extend well to indefinite proof search (what should happen after either 1:1 or the target AWR is reached?), an exponential decay function is used instead, as shown in Figure \ref{fig:decay-and-converge}.
+Since a simple linear shape does not extend well to indefinite proof search (it is unclear what should happen after either 1:1 or the target AWR is reached), an exponential decay function is used instead, as shown in Figure \ref{fig:decay-and-converge}.
 
 These shapes are further parameterised by an integral \emph{shape frequency} setting, which controls the rate of decay or convergence: every \(n\) steps, the difference between the current and the target AWR is halved, rounding where necessary.
 In future, this might allow the use of repeating patterns such as a sinusoid, hence \emph{frequency}.
@@ -117,12 +117,80 @@ Together, these new settings allow a number of new option combinations, which ca
 
 \section{Experimental Evaluation}
 In practice, decaying from an age-biased initial AWR to 1:1 (or converging backwards) was not found to be an improvement.
-However, age/weight shapes starting with a weight-based AWR were found to be useful in some cases.
+However, age/weight shapes decaying from or converging to a weight-based AWR were found to be useful in some cases.
 An experimental evaluation of this approach on the TPTP~\cite{tptp} benchmark follows.
 
-\subsection{Decaying AWR}
-\subsection{Converging AWR}
-\todo{analyse (two sets of) results, discuss drop in performance in exchange for uniques}.
+Vampire first ran to establish baseline performance in its competition \emph{CASC mode} on all problems in TPTP, with a wallclock time limit of 300 seconds.
+For experimental purposes, the same environment was preserved with the exception of activating the new ``shapes'' settings with a range of different shape frequencies.
+The baseline solved 13,057 problems in total.
+No experimental configuration improved on this figure, but some problems not solved by baseline were solved by the new configurations, and some entirely new problems were solved.
+
+\subsection{Raw Performance}
+The following shows the performance in terms of solved problems of all the configurations tested.
+These data show that configurations which are more similar to the baseline (i.e. slow decay or fast convergence) achieve more similar performance, as expected.
+
+\begin{center}
+\begin{tabular}{l l l}
+	Configuration & Frequency & Proved\\
+	\hline
+	baseline & -- & 13057\\
+	\hline
+	converge & 1 & 13039\\
+	converge & 5 & 13029\\
+	converge & 10 & 13028\\
+	converge & 50 & 13015\\
+	converge & 100 & 12976\\
+	converge & 500 & 12895\\
+	converge & 1000 & 12837\\
+	converge & 5000 & 12775\\
+	converge & 10000 & 12751\\
+	\hline
+	decay & 1 & 12698\\
+	decay & 5 & 12702\\
+	decay & 10 & 12698\\
+	decay & 50 & 12712\\
+	decay & 100 & 12726\\
+	decay & 500 & 12795\\
+	decay & 1000 & 12860\\
+	decay & 5000 & 12982\\
+	decay & 10000 & 13002\\
+\end{tabular}
+\end{center}
+
+\subsection{Uniques}
+The following shows the number of problems the new configurations solved that were not solved by the baseline prover.
+This shows the number of new problems that might be able to be solved if the new configurations were added to the competition mode.
+In total, 134 problems were solved by the new configurations that were not solved by the baseline.
+
+\begin{center}
+\begin{tabular}{l l l}
+	Configuration & Frequency & Unique\\
+	\hline
+	converge & 1 & 24\\
+	converge & 5 & 27\\
+	converge & 10 & 35\\
+	converge & 50 & 45\\
+	converge & 100 & 51\\
+	converge & 500 & 63\\
+	converge & 1000 & 52\\
+	converge & 5000 & 53\\
+	converge & 10000 & 53\\
+	\hline
+	decay & 1 & 48\\
+	decay & 5 & 51\\
+	decay & 10 & 48\\
+	decay & 50 & 49\\
+	decay & 100 & 46\\
+	decay & 500 & 29\\
+	decay & 1000 & 29\\
+	decay & 5000 & 16\\
+	decay & 10000 & 7\\
+\end{tabular}
+\end{center}
+
+\subsection{New Problems}
+Some problems were solved which were marked as ``Unknown'' status in the TPTP headers.
+Vampire baseline (and several configurations) were able to solve \texttt{GEO120+1}, but only converging with frequency 50 solved \texttt{SET345-6} and only decaying with frequency 1 solved \texttt{LAT320+3}.
 
 \section{Future Work}
 \todo{more shapes, better ways of doing frequency decay, integrate into existing strategy schedules}.
