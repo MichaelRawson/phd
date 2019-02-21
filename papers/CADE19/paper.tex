@@ -47,13 +47,45 @@ These properties are typical for the observed set of problems.
 	\label{fig:example-optimal-awr}
 \end{figure}
 
-This experiment was repeated on the whole TPTP problem set, excluding problems Vampire does not support, and problems which were not solved by the default mode in under a second for any AWR value.
-The whole set yielded similar AWR data for 8,123 problems.
+This experiment was repeated on the whole TPTP problem set, excluding problems Vampire does not support, problems which were not solved by the default mode in under a second for any AWR value, and problems solved in pre-processing.
+The whole set yielded similar AWR data for 7,947 problems.
 These data show that while there is no ``best'' AWR for the whole set (Figure \ref{fig:no-best-awr}), choosing a good AWR value for a problem is well-rewarded (Figure \ref{fig:optimal-awr-improvement}).
 
 \begin{figure}
 	\centering
-	\includegraphics[width=0.8\textwidth]{no-best-awr}
+	\begin{tabular}{l l l l l}
+AWR & Minimum & Maximum & Mean & Standard Deviation\\
+\hline
+8:1 & 1.0 & 150.67 & 1.37 & 1.98\\
+5:1 & 1.0 & 122.22 & 1.33 & 1.64\\
+4:1 & 1.0 & 101.44 & 1.32 & 1.42\\
+3:1 & 1.0 & 105.00 & 1.29 & 1.41\\
+2:1 & 1.0 & 112.67 & 1.27 & 1.45\\
+3:2 & 1.0 & 119.89 & 1.27 & 1.51\\
+5:4 & 1.0 & 125.00 & 1.26 & 1.55\\
+1 & 1.0 & 133.56 & 1.26 & 1.63\\
+2:3 & 1.0 & 147.67 & 1.28 & 1.79\\
+2 & 1.0 & 162.67 & 1.31 & 1.97\\
+3 & 1.0 & 190.56 & 1.37 & 2.30\\
+4 & 1.0 & 17.41 & 1.38 & 0.67\\
+5 & 1.0 & 133.67 & 1.44 & 1.70\\
+6 & 1.0 & 106.44 & 1.47 & 1.46\\
+7 & 1.0 & 104.89 & 1.49 & 1.44\\
+8 & 1.0 & 101.33 & 1.53 & 1.45\\
+10 & 1.0 & 101.78 & 1.60 & 1.53\\
+12 & 1.0 & 101.67 & 1.65 & 1.62\\
+14 & 1.0 & 103.00 & 1.70 & 1.75\\
+16 & 1.0 & 101.33 & 1.74 & 1.76\\
+20 & 1.0 & 100.89 & 1.82 & 1.94\\
+24 & 1.0 & 101.33 & 1.89 & 2.08\\
+28 & 1.0 & 99.22 & 1.96 & 2.24\\
+32 & 1.0 & 100.00 & 1.99 & 2.36\\
+40 & 1.0 & 98.78 & 2.09 & 2.64\\
+50 & 1.0 & 98.78 & 2.17 & 2.88\\
+64 & 1.0 & 101.22 & 2.28 & 3.19\\
+128 & 1.0 & 107.44 & 2.57 & 4.16\\
+1024 & 1.0 & 222.01 & 2.83 & 7.55
+	\end{tabular}
 	\caption{The mean relative performance drop (in terms of activations compared to an optimal value) choosing a single AWR over an entire problem set causes. No setting is significantly ``better'' or ``worse'' than the others, but some have more variance in performance.}
 	\label{fig:no-best-awr}
 \end{figure}
@@ -82,7 +114,7 @@ In experiments, several AWR ``shapes'' were commonly seen, including:
 \begin{figure}
 	\centering
 	\includegraphics[width=0.8\textwidth]{random-walk}
-	\caption{The AWR series that produced the lowest number of activations on a particular problem. This is a search strategy that a single fixed AWR cannot reproduce.}
+	\caption{The AWR series that produced the lowest number of activations on a particular problem, smoothed in order to show the actual effect on proof search. This is a search strategy that a single fixed AWR cannot reproduce.}
 	\label{fig:random-walk}
 \end{figure}
 
