@@ -2,12 +2,40 @@
 \usepackage{graphicx}
 \usepackage[caption=false]{subfig}
 \usepackage[dvipsnames]{xcolor}
+\usepackage{amssymb}
+\usepackage{amsmath}
 \newcommand{\todo}[1]{\textcolor{red}{TODO: #1}}
+
+
 \title{Old or Heavy?\\Decaying Gracefully with Age/Weight Shapes.}
 \titlerunning{Dynamic Strategy Priority}
 \authorrunning{Reger \and Rawson}
 \author{Michael Rawson \and Giles Reger}
 \institute{University of Manchester, Manchester, UK}
+
+%
+%   Logical notation
+%
+\newcommand{\imply}{\rightarrow}
+%\renewcommand{\implies}{\imply}
+\newcommand{\liff}{\Leftrightarrow}
+\newcommand{\lniff}{\not\Leftrightarrow}
+\newcommand{\iffl}{\leftrightarrow}
+\newcommand{\xor}{\otimes}
+\newcommand{\orl}{\vee}
+\newcommand{\bigorl}{\bigvee}
+\newcommand{\andl}{\wedge}
+\newcommand{\bigandl}{\bigwedge}
+\newcommand{\notl}{\neg}
+\renewcommand{\models}{\vDash}
+\newcommand{\nmodels}{\nvDash}
+\newcommand{\subst}[2]{#1 \mapsto #2}       % for substitutions
+\newcommand{\Subst}[1]{\{#1\}}      % for substitutions
+\newcommand{\emptysubst}{\varepsilon}
+\newcommand{\true}{\mathsf{true}}      % boolean value true
+\newcommand{\false}{\mathsf{false}}     % boolean value false
+\newcommand{\eql}{\simeq}           % equality
+\newcommand{\neql}{\not\simeq}           % equality
 
 \begin{document}
 \maketitle
@@ -19,12 +47,99 @@ Based on these observations we develop several new modes for Vampire which vary 
 The modes solve a number of new problems in the TPTP benchmark.
 \end{abstract}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
 \label{sec:introduction}
-\todo{standard Vampire~\cite{vampire} fluff here}.\\
-\todo{explain a generic given-clause algorithm, define clause age and weight --- and how the ``balancing'' algorithm works internally}.\\
+
+At the core of all modern saturation-based theorem provers is \emph{clause selection}. It has been known for a long time that the way that clauses are selected in the given clause algorithm is important and early work in 80s already introduce the concept of selecting clauses as a ratio between the age and weight of a clause with the intuition that this balances between breadth and depth first search of the clause space. Whilst complex 
+
+
+\cite{DBLP:conf/cade/SchulzM16}
+
+We explore this 
+
+
+After covering relevant background material in Section~\ref{sec:background} the remainder of the paper makes the following contributions:
+\begin{itemize}
+	\item An experimental 
+	\item 
+	\item An implementation of this approach in the Vampire~\cite{vampire} theorem prover and an experimental analysis demonstrating its impact. This new method for clause selection led to X
+\end{itemize}
+Conclusions are drawn and future work discussed in Section~\ref{sec:conclusion}.
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Background} \label{sec:background}
+
+This section introduces the relevant background for the rest of the paper.
+
+%%%%%%
+\paragraph{First-Order Logic.} We consider the standard first-order predicate logic with
+equality. Terms are of the form $f(t_1,\ldots,t_n), c$ or $x$ where
+$f$ is a \emph{function symbol} of arity $n \geq 1$, $t_1,\ldots, t_n$ are terms, $c$ is a zero arity function symbol (i.e. a constant) and $x$ is a variable. 
+%
+The \emph{weight} of a term $t$ is defined as $w(t) =1$ if $t$ is a variable or a constant
+and as $w(t) = 1+\sum_{i=1,\ldots,n} w(t_i)$ if $t$ is of the form
+$f(t_1,\ldots,t_n)$. In other words, the weight or a term is the
+number of symbols in it.
+%
+Atoms are of the form $p(t_1,\ldots,t_n), q$ or $t_1 \eql t_2$ where $p$ is a \emph{predicate symbol} of arity $n$, $t_1, \ldots, t_n$ are terms, $q$ is a zero arity predicate symbol and $\eql$ is the \emph{equality symbol}. 
+%
+The weight function naturally extends to atoms: $w(p(t_1,\ldots,t_n)) = 1+\sum_{i=1,\ldots,n} w(t_i)$, $w(t_1 \eql t_2) = w(t_1)+w(t_2)$,
+and $w(q)=1$.
+%
+A literal is either an atom $A$, in which case we call it \emph{positive}, or a negation $\notl A$,
+in which case we call it \emph{negative}.
+%We write negated equalities as $t_1 \neql t_2$. 
+%
+The weight of a literal is the weight of the corresponding atom. 
+% 
+%We write $t[s]_p$ and $L[s]_p$ to denote that a term $s$ occurs in a term $t$ (in a literal $L$) at a position $p$.
+%
+A \emph{clause} is a disjunction of literals $L_1 \orl \ldots \orl L_n$ for $n \geq 0$.
+We disregard the order of literals and treat a clause as a multiset. 
+%
+The weight of a clause is the sum of the weight of its literals. 
+
+%%%%%%
+\paragraph{The Given Clause Algorithm.}
+
+Saturation-based theorem provers \emph{saturate} a set of clauses $S$ with respect to an inference system $\mathbb{I}$ e.g. they compute a set of clauses $S'$ by applying rules in $\mathbb{I}$ to clauses in $S$ until no new clauses are generated. 
+%
+If the empty clause is generated then $S$ is unsatisfiable.
+%
+Calculi such as resolution and superposition have conditions that ensure \emph{completeness}, which means that a saturated set $S$ is satisfiable if it does not contain the empty clause as an element.
+%
+As first-order logic is only semi-decidable, it is not necessarily the case that $S$ has a finite saturation, and even if it does it may be unachievable in practice using the available resources. 
+%
+Therefore, much effort in saturation-based first-order theorem proving involves 
+controlling proof search to make finding the empty clause more likely (within reasonable resource bounds). 
+%
+One important notion is that of \emph{redundancy}, being able to remove clauses from the search space that are not required. 
+%
+Another important notion, the subject of this paper, are literal selections that place restrictions on the inferences that can be performed. 
+%
+Both notions come with additional requirements for completeness.
+
+\todo{explain a generic given-clause algorithm; define clause age}
+
+%%%%%%
+\paragraph{Age-Weight Based Clause Selection.}
+
+\todo{ how the ``balancing'' algorithm works internally}
+
+%%%%%%
+\paragraph{Portfolio Solvers.}
+
 \todo{remark on portfolio modes --- more choice is (sometimes) a good thing}.
 
+%%%%%%
+\paragraph{Related Work.}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Optimising Age/Weight Ratios}
 \subsection{Fixed AWR}
 Changing Vampire's fixed AWR has a significant effect on the number of clauses required to be processed before a proof is found.
@@ -118,7 +233,11 @@ In experiments, several AWR ``shapes'' were commonly seen, including:
 	\label{fig:random-walk}
 \end{figure}
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Variable AWR for Vampire}
+\label{sec:variable}
+
 If changing AWR is sometimes useful for finding proofs more quickly, this could be useful as a Vampire option.
 In general we would like to describe any possible sequence that the AWR could follow during proof search.
 However, some details constrain the design space:
@@ -224,11 +343,14 @@ In total, 134 problems were solved by the new configurations that were not solve
 Some problems were solved which were marked as ``Unknown'' status in the TPTP headers.
 Vampire baseline (and several configurations) were able to solve \texttt{GEO120+1}, but only converging with frequency 50 solved \texttt{SET345-6} and only decaying with frequency 1 solved \texttt{LAT320+3}.
 
-\section{Future Work}
-\todo{more shapes, better ways of doing frequency decay, integrate into existing strategy schedules}.
 
-\section{Conclusions}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Conclusions and Future Work}
+\label{sec:conclusions}
+
 \todo{this is a thing, you can do it, you should do it (?), we can probably do better}.
+
+\todo{more shapes, better ways of doing frequency decay, integrate into existing strategy schedules}.
 
 \bibliographystyle{plain}
 \bibliography{references}
