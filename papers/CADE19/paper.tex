@@ -4,7 +4,8 @@
 \usepackage[dvipsnames]{xcolor}
 \usepackage{amssymb}
 \usepackage{amsmath}
-\newcommand{\todo}[1]{\textcolor{red}{TODO: #1}}
+\usepackage{todonotes}
+%\newcommand{\todo}[1]{\textcolor{red}{TODO: #1}}
 
 
 \title{Old or Heavy?\\Decaying Gracefully with Age/Weight Shapes.}
@@ -15,9 +16,7 @@
 
 \input{def}
 \newcommand{\Balance}{\ensuremath{\mathit{balance}}}
-
 \newcommand{\sandm}{Schulz and M{\"{o}}hrmann}
-
 
 \begin{document}
 \maketitle
@@ -25,7 +24,7 @@
 Modern saturation-based theorem provers are based on the given-clause algorithm, which iteratively selects new clauses to process. This clause selection has a large impact on the performance of proof search and has been the subject of much folklore.  
 The standard approach is to alternate between selecting the \emph{oldest} clause and the \emph{lightest} clause with a fixed, but configurable \emph{age/weight ratio} (AWR).
 We show that an optimal fixed value of this ratio can produce proofs significantly more quickly on a given problem, and further that varying AWR during proof search can improve upon a fixed ratio.
-Based on these observations we develop several new modes for the Vampireprover  which vary AWR according to a ``shape'' during proof search.
+Based on these observations we develop several new modes for the Vampire prover  which vary AWR according to a ``shape'' during proof search.
 The modes solve a number of new problems in the TPTP benchmark.
 \end{abstract}
 
@@ -33,13 +32,20 @@ The modes solve a number of new problems in the TPTP benchmark.
 \section{Introduction}
 \label{sec:introduction}
 
-Currently, the most successful theorem provers (such as Vampire~\cite{}, E~\cite{}, or SPASS~\cite{}) for first-order logic are saturation-based, utilising the well-known \emph{given clause algorithm}. Simply, this algorithm \emph{saturates} a set of clauses by iteratively selecting a clause and performing all non-redundant inferences with it until all clauses have been selected or the empty clause (witnessing inconsistency) has been found. Clearly, the order in which clauses are selected is key to the performance of the algorithm. Over the past few decades a certain amount of folklore has built up around the best methods for clause selection and recent work by \sandm{} \cite{DBLP:conf/cade/SchulzM16} systematically studied these. Our work extends this study with new results and also introduces the concept of a \emph{variable} clause selection strategy (one that changes over time) which we instantiate with two simple patterns (or shapes) that prove to be pragmatically useful.
+Currently, the most successful theorem provers (such as Vampire~\cite{vampire}, E~\cite{}, or SPASS~\cite{}) for first-order logic are saturation-based, utilising the well-known \emph{given-clause algorithm}.
+Simply, this algorithm \emph{saturates} a set of clauses by iteratively selecting a clause and performing all non-redundant inferences with it until all clauses have been selected or the empty clause (witnessing inconsistency) has been found.
+Clearly, the order in which clauses are selected is key to the performance of the algorithm.
+Over the past few decades a certain amount of folklore has built up around the best methods for clause selection and recent work by \sandm{} \cite{clause-selection-heuristics} systematically studied these.
+Our work extends this study with new results and also introduces the concept of a \emph{variable} clause selection strategy (one that changes over time) which we instantiate with two simple patterns (or shapes) that prove to be pragmatically useful.
 
-We restrict our attention to clause selection strategies that alternate between selecting clauses based on age (e.g. in a first-in-first-out manner) and weight (e.g. those with the fewest symbols first). It was confirmed by \sandm{} that alternating these two heuristics outperforms either by itself. We refer to the ratio with which we use either heuristic as the \emph{age/weight ratio} (AWR) as this is the terminology employed by the Vampire theorem prover, which we use as a vehicle for our study.
+We restrict our attention to clause selection strategies that alternate between selecting clauses based on age (e.g. in a first-in-first-out manner) and weight (e.g. those with the fewest symbols first).
+It was confirmed by \sandm{} that alternating these two heuristics outperforms either by itself.
+We refer to the ratio with which we use either heuristic as the \emph{age/weight ratio} (AWR) as this is the terminology employed by the Vampire theorem prover, which we use as a vehicle for our study.
 
-After covering relevant background material in Section~\ref{sec:background} the remainder of the paper makes two main the contributions. Firstly, in Section~\ref{sec:awr:study} we experimentally confirm the folklore that (i) the choice of age/weight ratio often has a significant effect on the performance of proof search, and (ii) there is no `best' age/weight ratio, indeed, there exist a large range of pragmatically useful ratios. Secondly, we demonstrate (Section~\ref{sec:varying:study}) that varying the age-weight ratio over time can achieve better performance than a fixed ratio and use this to motivate the addition of so-called \emph{age/weight shapes} for varying the ratio over time. 
+After covering relevant background material in Section~\ref{sec:background} the remainder of the paper makes two main the contributions.
+Firstly, in Section~\ref{sec:awr:study} we experimentally confirm the folklore that (i) the choice of age/weight ratio often has a significant effect on the performance of proof search, and (ii) there is no `best' age/weight ratio, indeed, there exist a large range of pragmatically useful ratios.
+Secondly, we demonstrate (Section~\ref{sec:varying:study}) that varying the age-weight ratio over time can achieve better performance than a fixed ratio and use this to motivate the addition of so-called \emph{age/weight shapes} for varying the ratio over time. 
 Experiments (Section~\ref{sec:experiments}) with these new options implemented in the Vampire theorem prover show a significant improvement, proving many new problems unsolvable by any current configuration of Vampire as well as other competitive solvers.
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Background} \label{sec:background}
@@ -184,6 +190,19 @@ We set out to experimentally confirm two assumptions from folklore:
 \end{enumerate}
 These were supported by the work of \sandm{} but here we focus on these points and explore them more deeply.
 
+\subsection{Logarithmic AWR}
+Optimising AWR values is more easily achieved if they have a continuous scale.
+AWR values are mathematically \(\mathbb{Q}^{+}\), the positive rational numbers, but in practice are more easily seen logarithmically: 1:16 is the same distance in terms of the effect on proof search from 1:8 as it is from 1:32.
+Therefore, we introduce the \emph{logarithmic} AWR \(L\), defined in terms of age \(A\) and weight \(W\) as
+\[
+	L = \log_2{\left(\frac{A}{W}\right)}
+\]
+With this definition, AWR can now be seen continuously.
+As \(L\) tends to positive infinity, Vampire selects only by weight, whereas if \(L\) tends to negative infinity Vampire selects only by age.
+\(L = 0\) represents the middle ground of a 1:1 age/weight ratio.
+
+
+\subsection{Experiments}
 %Changing Vampire's fixed AWR has a significant effect on the number of clauses required to be processed before a proof is found.
 As an initial illustrative example of how varying the AWR effects the number of clauses required to be processed before a proof is found consider Figure \ref{fig:example-optimal-awr}. This shows \todo{FINISH}
 
@@ -199,10 +218,9 @@ On this problem, a good AWR value is over 400\% better by this metric than the w
 	\includegraphics[width=0.8\textwidth]{example-optimal-awr}
 	\caption{
 The number of active clauses reported by Vampire after successful 1-second runs on a TPTP problem.
-A base-2 logarithm is used to produce a continuous scale for the \(x\)-axis.
 For sufficiently negative \(x\), proof search is biased towards age to such an extent that a proof is found via breadth-first search (and hence the number of active clauses remains constant), whereas after \(x\) becomes sufficiently positive, proof search does not terminate for this problem in the given time.
 In between these limits, the function is ``noisy'' and discontinuous.
-These properties are typical for the observed set of problems. \todo{Move definition out of caption and use more generally.}
+These properties are typical for the observed set of problems.
 }
 	\label{fig:example-optimal-awr}
 \end{figure}
@@ -212,44 +230,44 @@ The whole set yielded similar AWR data for 7,947 problems.
 These data show that while there is no ``best'' AWR for the whole set (Figure \ref{fig:no-best-awr}), choosing a good AWR value for a problem is well-rewarded (Figure \ref{fig:optimal-awr-improvement}).
 
 \noindent
- \todo{Get rid of Min column in Fig 3. Can we also capture the solved/unsolved balance? Perhaps just say what \% of solved problems were solved using that ratio.}
+ \todo{Can we also capture the solved/unsolved balance? Perhaps just say what \% of solved problems were solved using that ratio.}
 \todo{This discussion should be expanded. Results need more explanation and we should summarise e.g. yes we confirmed assumptions.}\\
 \todo{Can we extract some general information on correlation (or lack thereof) between best AWRs and syntactic features?}
 
 \begin{figure}[t]
 	\centering
 	\begin{tabular}{l l l l l}
-AWR & Minimum & Maximum & Mean & Standard Deviation\\
+AWR & Maximum & Mean & Standard Deviation\\
 \hline
-8:1 & 1.0 & 150.67 & 1.37 & 1.98\\
-5:1 & 1.0 & 122.22 & 1.33 & 1.64\\
-4:1 & 1.0 & 101.44 & 1.32 & 1.42\\
-3:1 & 1.0 & 105.00 & 1.29 & 1.41\\
-2:1 & 1.0 & 112.67 & 1.27 & 1.45\\
-3:2 & 1.0 & 119.89 & 1.27 & 1.51\\
-5:4 & 1.0 & 125.00 & 1.26 & 1.55\\
-1 & 1.0 & 133.56 & 1.26 & 1.63\\
-2:3 & 1.0 & 147.67 & 1.28 & 1.79\\
-2 & 1.0 & 162.67 & 1.31 & 1.97\\
-3 & 1.0 & 190.56 & 1.37 & 2.30\\
-4 & 1.0 & 17.41 & 1.38 & 0.67\\
-5 & 1.0 & 133.67 & 1.44 & 1.70\\
-6 & 1.0 & 106.44 & 1.47 & 1.46\\
-7 & 1.0 & 104.89 & 1.49 & 1.44\\
-8 & 1.0 & 101.33 & 1.53 & 1.45\\
-10 & 1.0 & 101.78 & 1.60 & 1.53\\
-12 & 1.0 & 101.67 & 1.65 & 1.62\\
-14 & 1.0 & 103.00 & 1.70 & 1.75\\
-16 & 1.0 & 101.33 & 1.74 & 1.76\\
-20 & 1.0 & 100.89 & 1.82 & 1.94\\
-24 & 1.0 & 101.33 & 1.89 & 2.08\\
-28 & 1.0 & 99.22 & 1.96 & 2.24\\
-32 & 1.0 & 100.00 & 1.99 & 2.36\\
-40 & 1.0 & 98.78 & 2.09 & 2.64\\
-50 & 1.0 & 98.78 & 2.17 & 2.88\\
-64 & 1.0 & 101.22 & 2.28 & 3.19\\
-128 & 1.0 & 107.44 & 2.57 & 4.16\\
-1024 & 1.0 & 222.01 & 2.83 & 7.55
+8:1 & 150.67 & 1.37 & 1.98\\
+5:1 & 122.22 & 1.33 & 1.64\\
+4:1 & 101.44 & 1.32 & 1.42\\
+3:1 & 105.00 & 1.29 & 1.41\\
+2:1 & 112.67 & 1.27 & 1.45\\
+3:2 & 119.89 & 1.27 & 1.51\\
+5:4 & 125.00 & 1.26 & 1.55\\
+1 & 133.56 & 1.26 & 1.63\\
+2:3 & 147.67 & 1.28 & 1.79\\
+2 & 162.67 & 1.31 & 1.97\\
+3 & 190.56 & 1.37 & 2.30\\
+4 & 17.41 & 1.38 & 0.67\\
+5 & 133.67 & 1.44 & 1.70\\
+6 & 106.44 & 1.47 & 1.46\\
+7 & 104.89 & 1.49 & 1.44\\
+8 & 101.33 & 1.53 & 1.45\\
+10 & 101.78 & 1.60 & 1.53\\
+12 & 101.67 & 1.65 & 1.62\\
+14 & 103.00 & 1.70 & 1.75\\
+16 & 101.33 & 1.74 & 1.76\\
+20 & 100.89 & 1.82 & 1.94\\
+24 & 101.33 & 1.89 & 2.08\\
+28 & 99.22 & 1.96 & 2.24\\
+32 & 100.00 & 1.99 & 2.36\\
+40 & 98.78 & 2.09 & 2.64\\
+50 & 98.78 & 2.17 & 2.88\\
+64 & 101.22 & 2.28 & 3.19\\
+128 & 107.44 & 2.57 & 4.16\\
+1024 & 222.01 & 2.83 & 7.55
 	\end{tabular}
 	\caption{The mean relative performance drop (in terms of activations compared to an optimal value) choosing a single AWR over an entire problem set causes. No setting is significantly ``better'' or ``worse'' than the others, but some have more variance in performance.}
 	\label{fig:no-best-awr}
@@ -318,7 +336,7 @@ In future, this might allow the use of repeating patterns such as a sinusoid, he
 \todo{Given that we don't, perhaps we should change the parameter to \emph{rate} or something else?}
 
 Our approach here was restricted by the balancing algorithm used internally, as AWR steps must be discrete and do not take effect immediately.
-An alternative approach might use an age/weight probability, rather than a ratio, from which age or weight decisions would be pseudo-randomly (but reproducably) taken with the use of a seeded PRNG.
+An alternative approach might use an age/weight probability, rather than a ratio, from which age or weight decisions would be pseudo-randomly (but reproducibly) taken with the use of a seeded PRNG.
 This would permit use of continuous age/weight functions, but would also introduce the possibility of ``getting unlucky'' in which a clause preferred by the age/weight probability is not selected due to an improbable-but-possible series of PRNG samples.
 
 \begin{figure}
@@ -344,66 +362,35 @@ For experimental purposes, the same environment was preserved with the exception
 The baseline solved 13,057 problems in total.
 No experimental configuration improved on this figure, but some problems not solved by baseline were solved by the new configurations, and some entirely new problems were solved.
 
-\subsection{Raw Performance}
+\subsection{Benchmark Performance}
 The following shows the performance in terms of solved problems of all the configurations tested.
+``Proved'' refers to the total number of problems a configuration solved, whereas ``Uniques'' is the number of problems a configuration solved which were not solved by the baseline.
 These data show that configurations which are more similar to the baseline (i.e. slow decay or fast convergence) achieve more similar performance, as expected.
-
-\begin{center}
-\begin{tabular}{l l l}
-	Configuration & Frequency & Proved\\
-	\hline
-	baseline & -- & 13057\\
-	\hline
-	converge & 1 & 13039\\
-	converge & 5 & 13029\\
-	converge & 10 & 13028\\
-	converge & 50 & 13015\\
-	converge & 100 & 12976\\
-	converge & 500 & 12895\\
-	converge & 1000 & 12837\\
-	converge & 5000 & 12775\\
-	converge & 10000 & 12751\\
-	\hline
-	decay & 1 & 12698\\
-	decay & 5 & 12702\\
-	decay & 10 & 12698\\
-	decay & 50 & 12712\\
-	decay & 100 & 12726\\
-	decay & 500 & 12795\\
-	decay & 1000 & 12860\\
-	decay & 5000 & 12982\\
-	decay & 10000 & 13002\\
-\end{tabular}
-\end{center}
-
-\subsection{Uniques}
-The following shows the number of problems the new configurations solved that were not solved by the baseline prover.
-This shows the number of new problems that might be able to be solved if the new configurations were added to the competition mode.
 In total, 134 problems were solved by the new configurations that were not solved by the baseline.
 
 \begin{center}
-\begin{tabular}{l l l}
-	Configuration & Frequency & Unique\\
+\begin{tabular}{l l l l}
+	Configuration & Frequency & Proved & Uniques\\
 	\hline
-	converge & 1 & 24\\
-	converge & 5 & 27\\
-	converge & 10 & 35\\
-	converge & 50 & 45\\
-	converge & 100 & 51\\
-	converge & 500 & 63\\
-	converge & 1000 & 52\\
-	converge & 5000 & 53\\
-	converge & 10000 & 53\\
-	\hline
-	decay & 1 & 48\\
-	decay & 5 & 51\\
-	decay & 10 & 48\\
-	decay & 50 & 49\\
-	decay & 100 & 46\\
-	decay & 500 & 29\\
-	decay & 1000 & 29\\
-	decay & 5000 & 16\\
-	decay & 10000 & 7\\
+	baseline & -- & 13057 & 0\\
+	converge & 1 & 13039 & 24\\
+	converge & 5 & 13029 & 27\\
+	converge & 10 & 13028 & 35\\
+	converge & 50 & 13015 & 45\\
+	converge & 100 & 12976 & 51\\
+	converge & 500 & 12895 & 63\\
+	converge & 1000 & 12837 & 52\\
+	converge & 5000 & 12775 & 53\\
+	converge & 10000 & 12751 & 53\\
+	decay & 1 & 12698 & 48\\
+	decay & 5 & 12702 & 51\\
+	decay & 10 & 12698 & 48\\
+	decay & 50 & 12712 & 49\\
+	decay & 100 & 12726 & 46\\
+	decay & 500 & 12795 & 29\\
+	decay & 1000 & 12860 & 29\\
+	decay & 5000 & 12982 & 16\\
+	decay & 10000 & 13002 & 7\\
 \end{tabular}
 \end{center}
 
@@ -416,9 +403,8 @@ Vampire baseline (and several configurations) were able to solve \texttt{GEO120+
 \section{Conclusions and Future Work}
 \label{sec:conclusions}
 
-\todo{this is a thing, you can do it, you should do it (?), we can probably do better}.
-
-\todo{more shapes, better ways of doing frequency decay, integrate into existing strategy schedules}.
+\todo[inline]{this is a thing, you can do it, you should do it (?), we can probably do better}
+\todo[inline]{more shapes, better ways of doing frequency decay, integrate into existing strategy schedules}
 
 \bibliographystyle{plain}
 \bibliography{references}
