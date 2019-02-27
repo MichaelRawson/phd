@@ -185,8 +185,8 @@ We note here that Vampire's portfolio mode includes an additional option relevan
 
 We set out to experimentally confirm two assumptions from folklore:
 \begin{enumerate}
-	\item The choice of age/weight ratio often has a significant effect on the performance of proof search
-	\item There is no generally best age/weight ratio, even for a syntactically well-defined subset of problems
+	\item The choice of age/weight ratio often has a significant effect on the performance of proof search.
+	\item There is in general no single best age/weight ratio for a given set of problems.
 \end{enumerate}
 These were supported by the work of \sandm{} but here we focus on these points and explore them more deeply.
 
@@ -218,8 +218,7 @@ On this problem, a good AWR value is over 400\% better by this metric than the w
 	\includegraphics[width=0.8\textwidth]{example-optimal-awr}
 	\caption{
 The number of active clauses reported by Vampire after successful 1-second runs on a TPTP problem.
-For sufficiently negative \(x\), proof search is biased towards age to such an extent that a proof is found via breadth-first search (and hence the number of active clauses remains constant), whereas after \(x\) becomes sufficiently positive, proof search does not terminate for this problem in the given time.
-In between these limits, the function is ``noisy'' and discontinuous.
+In between the peaks on either side, the function of \(L\) is discontinuous with large peaks and troughs, but does follow an approximate trend and settles toward the global optimum.
 These properties are typical for the observed set of problems.
 }
 	\label{fig:example-optimal-awr}
@@ -269,7 +268,7 @@ AWR & Maximum & Mean & Standard Deviation\\
 128 & 107.44 & 2.57 & 4.16\\
 1024 & 222.01 & 2.83 & 7.55
 	\end{tabular}
-	\caption{The mean relative performance drop (in terms of activations compared to an optimal value) choosing a single AWR over an entire problem set causes. No setting is significantly ``better'' or ``worse'' than the others, but some have more variance in performance.}
+	\caption{The mean relative performance drop (in terms of activations compared to an optimal value) choosing a single AWR over an entire problem set causes. No setting is significantly ``better'' or ``worse'' than the others, but some have more variance in performance. A ratio of 1:4 produces an unusually well-behaved maximum performance drop. \sandm~found that 1:5 had a similar property, but this might be explained by differences in test environment.}
 	\label{fig:no-best-awr}
 \end{figure}
 
@@ -298,13 +297,8 @@ Applying this method with 10,000 repetitions to the problem seen earlier (\textt
 
 \todo{A little more explanation of the Fig... eg what is AWR trend?}
 
-In experiments, several AWR ``shapes'' were commonly seen, including:
-\begin{itemize}
-	\item Near-constant, as seen currently.
-	\item A decreasing trend from a higher AWR to a lower AWR.
-	\item An increasing trend from a lower AWR to a higher AWR.
-\end{itemize}
-\todo{Need to be more specific about `commonly seen'}
+Unsurprisingly, in ad-hoc experiments on other problems, the best shape is rarely constant.
+This suggests that implementing other shapes, such as an increasing or decreasing trend, might lead to quicker proofs in the Vampire theorem prover.
 
 \begin{figure}
 	\centering
@@ -347,9 +341,11 @@ This would permit use of continuous age/weight functions, but would also introdu
 \end{figure}
 
 Together, these new settings allow a number of new option combinations, which can be used in conjunction with Vampire's portfolio \emph{CASC mode} pending integration into the strategy schedules.
+This version of the prover is currently in a separate branch in the main Vampire repository\footnote{\texttt{https://github.com/vprover/vampire/tree/awr-shapes}}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Experimental Evaluation} \label{sec:experiments}
+\section{Experimental Evaluation}
+\label{sec:experiments}
 
 \todo{Change marketing here. Success is adding new options to portfolio mode. Only mention CASC once and refer to portfolio mode elsewhere.}
 
@@ -363,36 +359,44 @@ The baseline solved 13,057 problems in total.
 No experimental configuration improved on this figure, but some problems not solved by baseline were solved by the new configurations, and some entirely new problems were solved.
 
 \subsection{Benchmark Performance}
-The following shows the performance in terms of solved problems of all the configurations tested.
-``Proved'' refers to the total number of problems a configuration solved, whereas ``Uniques'' is the number of problems a configuration solved which were not solved by the baseline.
+Figure \ref{fig:results} shows the performance in terms of solved problems of all the configurations tested.
 These data show that configurations which are more similar to the baseline (i.e. slow decay or fast convergence) achieve more similar performance, as expected.
 In total, 134 problems were solved by the new configurations that were not solved by the baseline.
 
-\begin{center}
-\begin{tabular}{l l l l}
-	Configuration & Frequency & Proved & Uniques\\
+\begin{figure}
+\centering
+\begin{tabular}{l l l l l l}
+	Configuration & Frequency & Proved & Fresh & Uniques & \(u\)-score\\
 	\hline
-	baseline & -- & 13057 & 0\\
-	converge & 1 & 13039 & 24\\
-	converge & 5 & 13029 & 27\\
-	converge & 10 & 13028 & 35\\
-	converge & 50 & 13015 & 45\\
-	converge & 100 & 12976 & 51\\
-	converge & 500 & 12895 & 63\\
-	converge & 1000 & 12837 & 52\\
-	converge & 5000 & 12775 & 53\\
-	converge & 10000 & 12751 & 53\\
-	decay & 1 & 12698 & 48\\
-	decay & 5 & 12702 & 51\\
-	decay & 10 & 12698 & 48\\
-	decay & 50 & 12712 & 49\\
-	decay & 100 & 12726 & 46\\
-	decay & 500 & 12795 & 29\\
-	decay & 1000 & 12860 & 29\\
-	decay & 5000 & 12982 & 16\\
-	decay & 10000 & 13002 & 7\\
+	baseline & -- & 13057 & 0 & 1 & 714.2\\
+	converge & 1 & 13039 & 24 & 3 & 714.3\\
+	converge & 5 & 13029 & 27 & 1 & 709.5\\
+	converge & 10 & 13028 & 35 & 5 & 714.3\\
+	converge & 50 & 13015 & 45 & 5 & 712.8\\
+	converge & 100 & 12976 & 51 & 1 & 705.9\\
+	converge & 500 & 12895 & 63 & 4 & 698.3\\
+	converge & 1000 & 12837 & 52 & 0 & 688.6\\
+	converge & 5000 & 12775 & 53 & 1 & 682.4\\
+	converge & 10000 & 12751 & 53 & 0 & 678.7\\
+	decay & 1 & 12698 & 48 & 1 & 673.6\\
+	decay & 5 & 12702 & 51 & 1 & 674.9\\
+	decay & 10 & 12698 & 48 & 1 & 674.2\\
+	decay & 50 & 12712 & 49 & 2 & 679.1\\
+	decay & 100 & 12726 & 46 & 1 & 678.8\\
+	decay & 500 & 12795 & 29 & 1 & 685.5\\
+	decay & 1000 & 12860 & 29 & 2 & 692.6\\
+	decay & 5000 & 12982 & 16 & 2 & 707.1\\
+	decay & 10000 & 13002 & 7 & 0 & 706.3\\
 \end{tabular}
-\end{center}
+\caption{
+Results for the tested configurations.
+\emph{Proved} refers to the total number of problems a configuration solved.
+\emph{Fresh} is the number of problems a configuration solved which were not solved by the baseline.
+\emph{Uniques} is the number of problems a configuration solved which were not solved by any other configuration.
+\emph{\(u\)-score} is a refined unique score which correlates to a configuration's utility in solving new problems, as used in Hoder \emph{et al.}~\cite{u-score}.
+}
+\label{fig:results}
+\end{figure}
 
 \subsection{New Problems}
 Some problems were solved which were marked as ``Unknown'' status in the TPTP headers.
