@@ -1,0 +1,304 @@
+\newcommand{\tick}{\ding{52}}
+
+%
+% Pieces from the old manual that are still useful for the future.
+%
+
+\newcommand{\old}[1]{}
+%\newcommand{\old}[1]{{\color{red}#1}}
+
+%
+% Re-definitions of LaTeX commands
+%
+
+\renewcommand{\floatpagefraction}{0.9}
+
+% part (to produce a correct entry in TOC
+%\makeatletter
+%\def\@part[#1]#2{%
+%    \ifnum \c@secnumdepth >-2\relax
+%      \refstepcounter{part}%
+%%      \addcontentsline{toc}{part}{\thepart\hspace{1em}#1}%
+%      \addcontentsline{toc}{part}{#1}%
+%    \else
+%      \addcontentsline{toc}{part}{#1}%
+%    \fi
+%    \markboth{}{}%
+%    {\centering
+%     \interlinepenalty \@M
+%     \normalfont
+%     \ifnum \c@secnumdepth >-2\relax
+%       \huge\bfseries \partname~\thepart
+%       \par
+%       \vskip 20\p@
+%     \fi
+%     \Huge \bfseries #2\par}%
+%    \@endpart}
+%\makeatother
+
+\newcommand{\fullref}[1]{\ref{#1} on page~\pageref{#1}}
+
+%
+%
+%   the beast
+%
+%
+
+\newcommand{\Vampire}{\textsc{Vampire}}
+\newcommand{\VWP}{\url{http://www.vprover.org}}
+
+%
+%   general
+%
+
+%\newcommand{\eqref}[1]{(\ref{#1})}
+\newcommand{\setof}[1]{\{#1\}}
+\newcommand{\xone}[2]{#1_1,\ldots,#1_{#2}}
+\newcommand{\xzero}[2]{#1_0,\ldots,#1_{#2}}
+\newcommand{\QEDsymbol}{\text{\ding{111}}}
+\newcommand{\QED}{\hfill\QEDsymbol}
+\newcommand{\bydef}{\stackrel{\text{def}}{=}}       % by definition
+
+
+%
+%
+%     Indexing
+%
+%
+
+\newcommand{\dindex}[1]{\index{#1|textbf}}
+\newcommand{\D}[1]{\DI{#1}{#1}}                       % emphasize + boldface index
+\newcommand{\DI}[2]{\emph{#1}\dindex{#2}}             % emphasize + boldface index
+\newcommand{\DII}[3]{\emph{#1}\dindex{#2}\dindex{#3}} % emphasize + 2 boldface indices
+\newcommand{\DIII}[4]{\emph{#1}\dindex{#2}\dindex{#3}\dindex{#4}} % emphasize + 3 boldface indices
+\newcommand{\DIIII}[5]{\emph{#1}\dindex{#2}\dindex{#3}\dindex{#4}\dindex{#5}} % emphasize + 4 boldface indices
+\newcommand{\E}[1]{\EI{#1}{#1}}                       % emphasize + index
+\newcommand{\EI}[2]{\emph{#1}\index{#2}}     % emphasize + index
+\newcommand{\EII}[3]{\emph{#1}\index{#2}\index{#3}} % emphasize + 2 indices
+
+%
+%
+% Algorithms
+%
+%
+
+\newcommand{\inc}{~~~~\= \+ \kill}    % used in algorithms
+\newcommand{\dec}{\- \kill}         % used in algorithms
+
+\newcommand{\reserved}[1]{\textbf{\underline{#1}}} % reserved words in algorithms
+\newcommand{\semicol}{;}                  % semicolon in algorithms
+\newcommand{\assign}{\texttt{:=}}                  % assignment in algorithms
+\newcommand{\commentinalg}[1]{\texttt{(* #1 *)}}         % comment in algorithms
+\newcommand{\PROCEDURE}{\reserved{procedure}}
+\newcommand{\SUBPROCEDURE}{\reserved{subprocedure}}
+\newcommand{\PARAMETERS}{\reserved{parameters}}
+\newcommand{\INPUT}{\reserved{input}}
+\newcommand{\OUTPUT}{\reserved{output}}
+\newcommand{\IF}{\reserved{if}}
+\newcommand{\VAR}{\reserved{var}}
+\newcommand{\CASE}{\reserved{case}}
+\newcommand{\OF}{\reserved{of}}
+\newcommand{\DO}{\reserved{do}}
+\newcommand{\OD}{\reserved{od}}
+\newcommand{\THEN}{\reserved{then}}
+\newcommand{\ELSE}{\reserved{else}}
+\newcommand{\WHILE}{\reserved{while}}
+\newcommand{\BEGIN}{\reserved{begin}}
+\newcommand{\END}{\reserved{end}}
+\newcommand{\LET}{\reserved{let}}
+\newcommand{\FORALL}{\reserved{forall}}
+\newcommand{\ASS}{\texttt{ := }}
+\newcommand{\RETURN}{\reserved{return}}
+\newcommand{\REPEAT}{\reserved{repeat}}
+\newcommand{\LOOP}{\reserved{loop}}
+\newcommand{\FOREACH}{\reserved{foreach}}
+
+% saturation
+
+\newcommand{\supS}{\mathrm{Sup}}
+\newcommand{\isS}{\mathbb{I}}
+\newcommand{\deleted}{\cancel}
+\newcommand{\Mark}{\ensuremath{\checkmark}}
+\newcommand{\Active}{\ensuremath{\mathit{active}}}
+\newcommand{\DeActive}{\mathit{deactivated}}
+\newcommand{\Kept}{\mathit{kept}}
+\newcommand{\Passive}{\ensuremath{\mathit{passive}}}
+\newcommand{\Init}{\mathit{init}}
+\newcommand{\New}{\mathit{new}}
+\newcommand{\Given}{\mathit{given}}
+\newcommand{\Other}{\mathit{other}}
+\newcommand{\Select}{\mathit{select}}
+\newcommand{\FInfer}{\mathit{forward\_infer}}
+\newcommand{\BInfer}{\mathit{backward\_infer}}
+\newcommand{\Unprocessed}{\ensuremath{\mathit{unprocessed}}}
+\newcommand{\Locked}{\mathit{locked}}
+\newcommand{\Children}{\ensuremath{\mathit{children}}}
+\newcommand{\Reduced}{\ensuremath{\mathit{reduced}}}
+\newcommand{\Queue}{\ensuremath{\mathit{sat\_queue}}}
+\newcommand{\Pop}{\mathit{pop}}
+\newcommand{\Simplify}{\mathit{simplify}}
+\newcommand{\Retained}{\mathit{retained}}
+\newcommand{\ForwardSimplify}{\mathit{forward\_simplify}}
+\newcommand{\Process}{\mathit{process}}
+\newcommand{\BackwardSimplify}{\mathit{backward\_simplify}}
+\newcommand{\GoalFound}{\mathit{goal\_found}}
+\newcommand{\Int}{\mathit{model}}        % the SAT interpretation
+\newcommand{\NewInt}{\mathit{new\_model}}        % the SAT interpretation
+\newcommand{\Clauses}{\mathit{cls}}    % the set of clauses stored by SAT
+\newcommand{\Infer}{\mathit{infer}}
+
+%
+%
+%   Logical notation
+%
+%
+
+\newcommand{\imply}{\rightarrow}
+\renewcommand{\implies}{\imply}
+\newcommand{\liff}{\Leftrightarrow}
+\newcommand{\lniff}{\not\Leftrightarrow}
+\newcommand{\iffl}{\leftrightarrow}
+\newcommand{\xor}{\otimes}
+\newcommand{\orl}{\vee}
+\newcommand{\bigorl}{\bigvee}
+\newcommand{\andl}{\wedge}
+\newcommand{\bigandl}{\bigwedge}
+\newcommand{\notl}{\neg}
+\renewcommand{\models}{\vDash}
+\newcommand{\nmodels}{\nvDash}
+\newcommand{\subst}[2]{#1 \mapsto #2}       % for substitutions
+\newcommand{\Subst}[1]{\{#1\}}      % for substitutions
+\newcommand{\emptysubst}{\varepsilon}
+\newcommand{\true}{\mathsf{true}}      % boolean value true
+\newcommand{\false}{\mathsf{false}}     % boolean value false
+\newcommand{\eql}{\simeq}           % equality
+\newcommand{\neql}{\not\simeq}           % equality
+
+%
+%
+% Drawing options nicely
+%
+%
+
+\newlength{\rhtwidth}
+\newlength{\lftwidth}
+\settowidth{\lftwidth}{\textbf{Default value:}}
+\setlength{\rhtwidth}{\textwidth}
+\addtolength{\rhtwidth}{-\lftwidth}
+\addtolength{\rhtwidth}{-1ex}
+
+\newcommand{\OPTHEAD}[3]{
+ \vspace{1em}
+  \noindent\hrulefill
+  \hspace{1em}\large{\textbf{\textit{#1} options}}\phantomsection\label{optionsec:#2}\hspace{1em}
+  \hrulefill\\
+  \noindent
+  #3
+   \vspace{1em}
+  }
+
+
+\newenvironment{OPT}[3]{%
+\minipage{\linewidth}
+  \renewcommand{\tabcolsep}{0pt}%
+  \renewcommand{\arraystretch}{1.35}%
+  \noindent\hrulefill\\
+  \textbf{\large #1}\dindex{#1@\texttt{--#1}} \hfill \emph{#2}\phantomsection\label{opt:#3}\\*[-1ex]%
+  \noindent\null\hrulefill\medskip\par
+  \noindent%
+  \begin{tabular}{r@{\hspace*{1ex}}p{\rhtwidth}}
+}{%
+\end{tabular}
+\medskip
+\endminipage
+}
+
+\newlength{\crhtwidth}
+\newlength{\clftwidth}
+\settowidth{\clftwidth}{\textbf{Values:}}
+\setlength{\crhtwidth}{\textwidth}
+\addtolength{\crhtwidth}{-\clftwidth}
+\addtolength{\crhtwidth}{-1ex}
+
+\newenvironment{COM}[1]{%
+  \renewcommand{\tabcolsep}{0pt}%
+  \renewcommand{\arraystretch}{1.35}%
+  \noindent\hrulefill\\
+  \textbf{\large #1}\dindex{#1@\texttt{--#1}}\\*[-1ex]%
+  \noindent\null\hrulefill\medskip\par
+  \noindent%
+  \begin{tabular}{r@{\hspace*{1ex}}p{\crhtwidth}}
+}{%
+\end{tabular}
+\medskip
+}
+
+\newcommand{\explanation}[2]{\textbf{#1:} & #2}
+\newcommand{\short}[1]{\explanation{Short form}{\optionI{#1}}}
+
+% XMl command
+\newenvironment{XMLCOM}[1]{%
+  \renewcommand{\tabcolsep}{0pt}%
+  \renewcommand{\arraystretch}{1.35}%
+  \noindent\hrulefill\\
+  \texttt{\large #1}\\*[-1ex]%
+  \noindent\null\hrulefill\medskip\par
+  \noindent%
+  \begin{tabular}{r@{\hspace*{1ex}}p{\rhtwidth}}
+}{%
+\end{tabular}
+\medskip
+}
+
+\newenvironment{vinput}{\noindent\begin{small}\begin{tt}\begin{tabbing}}{\end{tabbing}\end{tt}\end{small}}
+
+% AVATAR notation
+
+\newcommand{\FO}{\textsf{FO}} % superposition prover
+\newcommand{\SAT}{\textsf{SAT}} % SAT solver
+\newcommand{\assert}{\texttt{assert}} % assert command
+\newcommand{\retract}{\texttt{retract}} % retract command
+\newcommand{\lock}{\mathit{lock}} % lock function
+\newcommand{\aclause}[2]{(#1 \leftarrow #2)}
+\newcommand{\DPLLG}{\mathrm{DPLL(\Gamma)}} % DPLL(G) calculus
+
+%
+%
+%   Local notation
+%
+%
+
+\newcommand{\vampNot}{\~{}}    % negation in Vampire's output
+\newcommand{\opt}[1]{\texttt{#1}}
+\newcommand{\option}[1]{\opt{-#1}}
+\newcommand{\Option}[1]{\opt{--#1}}
+\newcommand{\OptionPR}[1]{\opt{--#1} on page~\pageref{opt:#1}}
+\newcommand{\optionval}[2]{\texttt{-#1~#2}}
+\newcommand{\Optionval}[2]{\texttt{--#1~#2}}
+\newcommand{\optionI}[1]{\texttt{-#1}\index{#1@\texttt{-#1}}}
+\newcommand{\OptionI}[1]{\texttt{--#1}\index{#1@\texttt{--#1}}}
+\newcommand{\optionvalI}[2]{\texttt{-#1~#2}\index{#1@\texttt{-#1}}}
+\newcommand{\OptionvalI}[2]{\texttt{--#1~#2}\index{#1@\texttt{--#1}}}
+\newcommand{\stat}[1]{\texttt{#1}\index{#1@\texttt{#1} (statistics)}}
+
+\newcommand{\emptyclause}{\Box}
+\newcommand{\ruleBR}{\mathsf{BR}}
+\newcommand{\ruleFact}{\mathsf{Fact}}
+\newcommand{\nat}{\mathbb{N}}     % set of natural numbers
+\newcommand{\KBo}{\succ}
+\newcommand{\KBoeq}{\succeq}
+\newcommand{\rr}{~\Rightarrow~}   % rewrite
+
+%
+% orderings
+%
+\newcommand{\occ}[2]{\mathit{occ}_#1(#2)} % number of occurrences of #1 in #2
+\newcommand{\weight}{\mathit{weight}}     % weight function	
+\newcommand{\level}{\mathit{level}}       % level function	
+\newcommand{\precedence}{\mathit{prec}}   % precedence function	
+
+%
+% Appendix on parameters
+%
+\newcommand{\oref}[1]{\pageref{opt:#1}}   % reference to option description
+

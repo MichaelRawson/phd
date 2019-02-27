@@ -13,37 +13,19 @@
 \author{Michael Rawson \and Giles Reger}
 \institute{University of Manchester, Manchester, UK}
 
-%
-%   Logical notation
-%
-\newcommand{\imply}{\rightarrow}
-%\renewcommand{\implies}{\imply}
-\newcommand{\liff}{\Leftrightarrow}
-\newcommand{\lniff}{\not\Leftrightarrow}
-\newcommand{\iffl}{\leftrightarrow}
-\newcommand{\xor}{\otimes}
-\newcommand{\orl}{\vee}
-\newcommand{\bigorl}{\bigvee}
-\newcommand{\andl}{\wedge}
-\newcommand{\bigandl}{\bigwedge}
-\newcommand{\notl}{\neg}
-\renewcommand{\models}{\vDash}
-\newcommand{\nmodels}{\nvDash}
-\newcommand{\subst}[2]{#1 \mapsto #2}       % for substitutions
-\newcommand{\Subst}[1]{\{#1\}}      % for substitutions
-\newcommand{\emptysubst}{\varepsilon}
-\newcommand{\true}{\mathsf{true}}      % boolean value true
-\newcommand{\false}{\mathsf{false}}     % boolean value false
-\newcommand{\eql}{\simeq}           % equality
-\newcommand{\neql}{\not\simeq}           % equality
+\input{def}
+\newcommand{\Balance}{\ensuremath{\mathit{balance}}}
+
+\newcommand{\sandm}{Schulz and M{\"{o}}hrmann}
+
 
 \begin{document}
 \maketitle
 \begin{abstract}
-Vampire is an automatic theorem prover for first-order logic.
-During proof search in given-clause algorithms, Vampire repeatedly selects clauses from either an \emph{age} or a \emph{weight} queue in a fixed, but configurable \emph{age/weight ratio} (AWR).
+Modern saturation-based theorem provers are based on the given-clause algorithm, which iteratively selects new clauses to process. This clause selection has a large impact on the performance of proof search and has been the subject of much folklore.  
+The standard approach is to alternate between selecting the \emph{oldest} clause and the \emph{lightest} clause with a fixed, but configurable \emph{age/weight ratio} (AWR).
 We show that an optimal fixed value of this ratio can produce proofs significantly more quickly on a given problem, and further that varying AWR during proof search can improve upon a fixed ratio.
-Based on these observations we develop several new modes for Vampire which vary AWR according to a ``shape'' during proof search.
+Based on these observations we develop several new modes for the Vampireprover  which vary AWR according to a ``shape'' during proof search.
 The modes solve a number of new problems in the TPTP benchmark.
 \end{abstract}
 
@@ -51,24 +33,12 @@ The modes solve a number of new problems in the TPTP benchmark.
 \section{Introduction}
 \label{sec:introduction}
 
-At the core of all modern saturation-based theorem provers is \emph{clause selection}. It has been known for a long time that the way that clauses are selected in the given clause algorithm is important and early work in 80s already introduce the concept of selecting clauses as a ratio between the age and weight of a clause with the intuition that this balances between breadth and depth first search of the clause space. Whilst complex 
+Currently, the most successful theorem provers (such as Vampire~\cite{}, E~\cite{}, or SPASS~\cite{}) for first-order logic are saturation-based, utilising the well-known \emph{given clause algorithm}. Simply, this algorithm \emph{saturates} a set of clauses by iteratively selecting a clause and performing all non-redundant inferences with it until all clauses have been selected or the empty clause (witnessing inconsistency) has been found. Clearly, the order in which clauses are selected is key to the performance of the algorithm. Over the past few decades a certain amount of folklore has built up around the best methods for clause selection and recent work by \sandm{} \cite{DBLP:conf/cade/SchulzM16} systematically studied these. Our work extends this study with new results and also introduces the concept of a \emph{variable} clause selection strategy (one that changes over time) which we instantiate with two simple patterns (or shapes) that prove to be pragmatically useful.
 
+We restrict our attention to clause selection strategies that alternate between selecting clauses based on age (e.g. in a first-in-first-out manner) and weight (e.g. those with the fewest symbols first). It was confirmed by \sandm{} that alternating these two heuristics outperforms either by itself. We refer to the ratio with which we use either heuristic as the \emph{age/weight ratio} (AWR) as this is the terminology employed by the Vampire theorem prover, which we use as a vehicle for our study.
 
-\cite{DBLP:conf/cade/SchulzM16}
-
-We explore this 
-
-
-After covering relevant background material in Section~\ref{sec:background} the remainder of the paper makes the following contributions:
-\begin{itemize}
-	\item An experimental 
-	\item 
-	\item An implementation of this approach in the Vampire~\cite{vampire} theorem prover and an experimental analysis demonstrating its impact. This new method for clause selection led to X
-\end{itemize}
-Conclusions are drawn and future work discussed in Section~\ref{sec:conclusion}.
-
-
-
+After covering relevant background material in Section~\ref{sec:background} the remainder of the paper makes two main the contributions. Firstly, in Section~\ref{sec:awr:study} we experimentally confirm the folklore that (i) the choice of age/weight ratio often has a significant effect on the performance of proof search, and (ii) there is no `best' age/weight ratio, indeed, there exist a large range of pragmatically useful ratios. Secondly, we demonstrate (Section~\ref{sec:varying:study}) that varying the age-weight ratio over time can achieve better performance than a fixed ratio and use this to motivate the addition of so-called \emph{age/weight shapes} for varying the ratio over time. 
+Experiments (Section~\ref{sec:experiments}) with these new options implemented in the Vampire theorem prover show a significant improvement, proving many new problems unsolvable by any current configuration of Vampire as well as other competitive solvers.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -76,9 +46,13 @@ Conclusions are drawn and future work discussed in Section~\ref{sec:conclusion}.
 
 This section introduces the relevant background for the rest of the paper.
 
+
+
 %%%%%%
-\paragraph{First-Order Logic.} We consider the standard first-order predicate logic with
-equality. Terms are of the form $f(t_1,\ldots,t_n), c$ or $x$ where
+\paragraph{First-Order Logic and Weight.} Our setting is the standard first-order predicate logic with equality. A formal definition of this logic is not required for this paper but an important notion is that of the \emph{weight} of a clause. In first-order logic,  terms are built from function symbols and variables, literals are built from terms, and clauses are disjunctions of literals. The weight of a term is the number of function and variable symbols occurring in it and this notion is lifted to clauses. 
+
+\iffalse
+Terms are of the form $f(t_1,\ldots,t_n), c$ or $x$ where
 $f$ is a \emph{function symbol} of arity $n \geq 1$, $t_1,\ldots, t_n$ are terms, $c$ is a zero arity function symbol (i.e. a constant) and $x$ is a variable. 
 %
 The \emph{weight} of a term $t$ is defined as $w(t) =1$ if $t$ is a variable or a constant
@@ -103,9 +77,10 @@ A \emph{clause} is a disjunction of literals $L_1 \orl \ldots \orl L_n$ for $n \
 We disregard the order of literals and treat a clause as a multiset. 
 %
 The weight of a clause is the sum of the weight of its literals. 
+\fi
 
 %%%%%%
-\paragraph{The Given Clause Algorithm.}
+\paragraph{Saturation-Based Proof Search.}
 
 Saturation-based theorem provers \emph{saturate} a set of clauses $S$ with respect to an inference system $\mathbb{I}$ e.g. they compute a set of clauses $S'$ by applying rules in $\mathbb{I}$ to clauses in $S$ until no new clauses are generated. 
 %
@@ -120,36 +95,106 @@ controlling proof search to make finding the empty clause more likely (within re
 %
 One important notion is that of \emph{redundancy}, being able to remove clauses from the search space that are not required. 
 %
-Another important notion, the subject of this paper, are literal selections that place restrictions on the inferences that can be performed. 
+Another important notion are literal selections that place restrictions on the inferences that can be performed. 
 %
-Both notions come with additional requirements for completeness.
-
-\todo{explain a generic given-clause algorithm; define clause age}
+Both notions come with additional requirements for completeness. Vampire often gives up these requirements for pragmatic reasons (incomplete strategies have been found to be more efficient than complete ones in certain cases) and in such cases the satisfiability of $S$ upon saturation is \emph{unknown}.
 
 %%%%%%
-\paragraph{Age-Weight Based Clause Selection.}
+\paragraph{The Given Clause Algorithm and AWR Clause Selection.}
+To achieve saturation, the \emph{given clause algorithm} organises the set of clauses into two sets: the \Active\ clauses are those that have been active in inferences, whereas the \Passive\ clauses are those that have not. Typically, a further \Unprocessed\ set is required in order to manage the clauses produced during a single iteration of the loop. 
+%
+Realisations of the given clause algorithm generally differ in how they organise simplifications. There are two main approaches (both implemented by Vampire): the Otter loop uses both \Active\ and \Passive\ for simplifications, whereas the Discount loop only uses \Active. 
 
-\todo{ how the ``balancing'' algorithm works internally}
+The algorithm is centred around the \emph{clause selection} process. As previously mentioned, there are two main heuristics for this:
+\begin{itemize}
+	\item \emph{By Age (or First-in/First-out)} clause selection prefers the oldest clause, simulating a \emph{breadth-first} search of the clause space.
+	\item \emph{By Weight (or symbol-counting)} clause selection prefers the youngest clause (with the fewest symbols). The intuition behind this approach is that the sought empty clause has zero symbols and lighter clauses are (in some sense) closer to this. Furthermore, lighter clauses are friendlier (less explosive) to proof search in various ways e.g. they are more general in terms of subsumption and tend to have fewer children.
+\end{itemize}
+It has been shown (see \sandm{}) that alternating these heuristics is beneficial and we consider this setting here. In Vampire this alternation is achieved by an age/weight ratio (AWR) implemented by a simple \emph{balancing} algorithm. The balance is initialised to 0 and used as follows: a positive balance means that a clause should be selected by age, whereas a negative balance means that a clause should be selected by weight; given a ratio of $a:w$ the balance is incremented by $a$ when selecting by age and decremented by $w$ when selecting by weight.
+
+Figure~\ref{fig:discount} gives the Discount algorithm along with balance-based AWR clause selection. The lines relevant to clause selection are marked with \Mark.
+
+\begin{figure}[t]
+\begin{tabbing}
+~~~~~~\=~~~~\=~~~~\=~~~\=~~~~\=~~~~\=~~~~\=~~~~\=~~~~\=\kill
+\>\INPUT: $\Init$: set of clauses\semicol, $a:w$ age-weight ratio \\
+\>\VAR\ $\Active$, $\Passive$, $\Unprocessed$: set of clauses\semicol \\
+\>\VAR\ $\Given$, $\New$: clause\semicol\\
+\>$\Active\ \assign\ \emptyset$\semicol \\
+\>$\Unprocessed\ \assign\ \Init$\semicol \\
+\Mark
+\>$\Balance\ \assign\ 0$\semicol\\
+\>\LOOP\\ 
+\>\>\WHILE\ $\Unprocessed \neq \emptyset$ \\
+\>\>\>$\New \assign \Pop(\Unprocessed)$\semicol \\ 
+\>\>\>\IF\ $\New = \emptyclause$ \THEN\ \RETURN\ \textit{unsatisfiable}\semicol \\
+\>\>\>\IF\ $\Retained(\New)$ \THEN \` (* retention test *) \\ %\inc
+\>\>\>\>simplify $\New$ by clauses in $\Active \cup \Passive$ \semicol 
+                        \` (* forward simplification *) \\
+\>\>\>\>\IF\ $\New = \emptyclause$ \THEN\ \RETURN\ \textit{unsatisfiable}\semicol \\
+\>\>\>\>\IF\ $\Retained(\New)$ \THEN
+                        \` (* another retention test *) \\
+\>\>\>\>\>simplify $\Active$ and  $\Passive$ using $\New$ \semicol
+                        \` (* backward simplification *) \\
+\>\>\>\>\>move the simplified clauses to $\Unprocessed$\semicol \\
+\>\>\>\>\>add $\New$ to $\Passive$\\ %\dec 
+\>\>\IF\ $\Passive = \emptyset$ \THEN\
+          \RETURN\ \textit{satisfiable} or \textit{unknown}\\
+\Mark
+\>\>\IF\ $\Balance > 0$ \THEN\\
+\Mark
+\>\>\>\>$\Given\ \assign\ $ lightest clause in \Passive\semicol\\
+\Mark
+\>\>\>\>$\Balance \assign\ \Balance - w$\semicol\\
+\Mark
+\>\>\ELSE\\
+\Mark
+\>\>\>\>$\Given\ \assign\ $ oldest clause in \Passive\semicol\\
+\Mark
+\>\>\>\>$\Balance \assign\ \Balance + a$\semicol\\
+\>\>move $\Given$ from $\Passive$ to $\Active$\semicol \\
+\>\>$\Unprocessed \assign \Infer(\Given,\Active)$\semicol \` (* generating inferences *)\\
+\end{tabbing}
+
+                \caption{The Discount Saturation Algorithm with AWR clause selection
+	        \label{fig:discount}}
+
+\end{figure}
+
+
 
 %%%%%%
 \paragraph{Portfolio Solvers.}
 
-\todo{remark on portfolio modes --- more choice is (sometimes) a good thing}.
+Vampire is a portfolio solver and is typically run in a mode that attempts multiple different \emph{strategies} in quick succession e.g. in a 30 second run it may attempt 10 or more different strategies. These strategies employ many different options including different saturation algorithms (including Otter and Discount), preprocessing options, literal selection strategies, inference rules, and clause selection heuristics. The portfolio mode is a significant improvement on any single strategy. 
+
+We note here that Vampire's portfolio mode includes an additional option relevant to clause selection: the \texttt{--nongoal\_weight\_coefficient} option specifies a multiplier to apply to the weight of nongoal clauses, thus preferring clauses in or derived from the goal in clause selection. Use of this heuristic is orthogonal to the age/weight ratio and we do not investigate its impact any further here.
 
 %%%%%%
-\paragraph{Related Work.}
+\paragraph{Related Work.} \todo{Mention clause selection strategies of Otter, Prover9, E, and SPASS}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Optimising Age/Weight Ratios}
-\subsection{Fixed AWR}
-Changing Vampire's fixed AWR has a significant effect on the number of clauses required to be processed before a proof is found.
-For example, Figure \ref{fig:example-optimal-awr} shows the effect of varying AWR on an illustrative problem from TPTP: a smaller number of active clauses means that fewer clauses were processed, which in general means that a proof was found faster\footnote{
+\newpage
+\section{Optimising Age/Weight Ratios} \label{sec:awr:study}
+
+We set out to experimentally confirm two assumptions from folklore:
+\begin{enumerate}
+	\item The choice of age/weight ratio often has a significant effect on the performance of proof search
+	\item There is no generally best age/weight ratio, even for a syntactically well-defined subset of problems
+\end{enumerate}
+These were supported by the work of \sandm{} but here we focus on these points and explore them more deeply.
+
+%Changing Vampire's fixed AWR has a significant effect on the number of clauses required to be processed before a proof is found.
+As an initial illustrative example of how varying the AWR effects the number of clauses required to be processed before a proof is found consider Figure \ref{fig:example-optimal-awr}. This shows \todo{FINISH}
+
+
+  shows the effect of varying AWR on an illustrative problem from TPTP: a smaller number of active clauses means that fewer clauses were processed, which in general means that a proof was found faster\footnote{
 It should be noted that if a small number of clauses are extremely expensive to process it may be slower than a larger number of less-expensive clauses, but in general this is a good heuristic measure for prover performance.
 It also avoids reproducibility issues involved with using system timing approaches.
 }.
 On this problem, a good AWR value is over 400\% better by this metric than the worst AWR value.
 
-\begin{figure}
+\begin{figure}[t]
 	\centering
 	\includegraphics[width=0.8\textwidth]{example-optimal-awr}
 	\caption{
@@ -157,7 +202,7 @@ The number of active clauses reported by Vampire after successful 1-second runs 
 A base-2 logarithm is used to produce a continuous scale for the \(x\)-axis.
 For sufficiently negative \(x\), proof search is biased towards age to such an extent that a proof is found via breadth-first search (and hence the number of active clauses remains constant), whereas after \(x\) becomes sufficiently positive, proof search does not terminate for this problem in the given time.
 In between these limits, the function is ``noisy'' and discontinuous.
-These properties are typical for the observed set of problems.
+These properties are typical for the observed set of problems. \todo{Move definition out of caption and use more generally.}
 }
 	\label{fig:example-optimal-awr}
 \end{figure}
@@ -166,7 +211,12 @@ This experiment was repeated on the whole TPTP problem set, excluding problems V
 The whole set yielded similar AWR data for 7,947 problems.
 These data show that while there is no ``best'' AWR for the whole set (Figure \ref{fig:no-best-awr}), choosing a good AWR value for a problem is well-rewarded (Figure \ref{fig:optimal-awr-improvement}).
 
-\begin{figure}
+\noindent
+ \todo{Get rid of Min column in Fig 3. Can we also capture the solved/unsolved balance? Perhaps just say what \% of solved problems were solved using that ratio.}
+\todo{This discussion should be expanded. Results need more explanation and we should summarise e.g. yes we confirmed assumptions.}\\
+\todo{Can we extract some general information on correlation (or lack thereof) between best AWRs and syntactic features?}
+
+\begin{figure}[t]
 	\centering
 	\begin{tabular}{l l l l l}
 AWR & Minimum & Maximum & Mean & Standard Deviation\\
@@ -213,11 +263,22 @@ AWR & Minimum & Maximum & Mean & Standard Deviation\\
 \end{figure}
 
 
-\subsection{Variable AWR}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Variable AWR for Vampire} 
+
+In this section we motivate and define a variable clause selection approach.
+
+%%%%%%%
+\subsection{The Optimal AWR Over Time} \label{sec:varying:study}
+
 Although choosing a good AWR value is important, this is covered in part by the use of strategy scheduling~\cite{CADE18} in which many AWR values are tried in sequence (along with other prover options).
-Additionally, a constant AWR fixed for the entire proof search is unlikely to be optimal for any given problem.
+Additionally, given that varying the AWR can have such a large impact, it seems likely that a constant AWR fixed for the entire proof search is unlikely to be optimal for any given problem.
 This can be shown by running Vampire with a randomised sequence of age/weight ratios given by a random walk repeatedly, then finding the best after a large number of repetitions.
 Applying this method with 10,000 repetitions to the problem seen earlier (\texttt{PRO017+2}) yields the example AWR trend shown in Figure \ref{fig:random-walk}, which reduces the best number of activations from 330 with a fixed AWR, to 287 with a varying AWR.
+
+\todo{A little more explanation of the Fig... eg what is AWR trend?}
 
 In experiments, several AWR ``shapes'' were commonly seen, including:
 \begin{itemize}
@@ -225,6 +286,7 @@ In experiments, several AWR ``shapes'' were commonly seen, including:
 	\item A decreasing trend from a higher AWR to a lower AWR.
 	\item An increasing trend from a lower AWR to a higher AWR.
 \end{itemize}
+\todo{Need to be more specific about `commonly seen'}
 
 \begin{figure}
 	\centering
@@ -233,10 +295,8 @@ In experiments, several AWR ``shapes'' were commonly seen, including:
 	\label{fig:random-walk}
 \end{figure}
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Variable AWR for Vampire}
-\label{sec:variable}
+%%%%%%%
+\subsection{Varying AWR in Vampire} \label{sec:varying:implementation}
 
 If changing AWR is sometimes useful for finding proofs more quickly, this could be useful as a Vampire option.
 In general we would like to describe any possible sequence that the AWR could follow during proof search.
@@ -250,8 +310,12 @@ However, some details constrain the design space:
 In this work we selected two general trends to explore: a trend away from the original (fixed) AWR toward 1:1 (``decay''), and a trend from 1:1 toward the original setting (``converge'').
 Since a simple linear shape does not extend well to indefinite proof search (it is unclear what should happen after either 1:1 or the target AWR is reached), an exponential decay function is used instead, as shown in Figure \ref{fig:decay-and-converge}.
 
+\todo{What are these figures showing?}
+
 These shapes are further parameterised by an integral \emph{shape frequency} setting, which controls the rate of decay or convergence: every \(n\) steps, the difference between the current and the target AWR is halved, rounding where necessary.
 In future, this might allow the use of repeating patterns such as a sinusoid, hence \emph{frequency}.
+
+\todo{Given that we don't, perhaps we should change the parameter to \emph{rate} or something else?}
 
 Our approach here was restricted by the balancing algorithm used internally, as AWR steps must be discrete and do not take effect immediately.
 An alternative approach might use an age/weight probability, rather than a ratio, from which age or weight decisions would be pseudo-randomly (but reproducably) taken with the use of a seeded PRNG.
@@ -266,7 +330,11 @@ This would permit use of continuous age/weight functions, but would also introdu
 
 Together, these new settings allow a number of new option combinations, which can be used in conjunction with Vampire's portfolio \emph{CASC mode} pending integration into the strategy schedules.
 
-\section{Experimental Evaluation}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Experimental Evaluation} \label{sec:experiments}
+
+\todo{Change marketing here. Success is adding new options to portfolio mode. Only mention CASC once and refer to portfolio mode elsewhere.}
+
 In practice, decaying from an age-biased initial AWR to 1:1 (or converging backwards) was not found to be an improvement.
 However, age/weight shapes decaying from or converging to a weight-based AWR were found to be useful in some cases.
 An experimental evaluation of this approach on the TPTP~\cite{tptp} benchmark follows.
