@@ -5,8 +5,6 @@
 \usepackage{amssymb}
 \usepackage{amsmath}
 \usepackage{todonotes}
-%\newcommand{\todo}[1]{\textcolor{red}{TODO: #1}}
-
 
 \title{Old or Heavy?\\Decaying Gracefully with Age/Weight Shapes.}
 \titlerunning{Dynamic Strategy Priority}
@@ -48,7 +46,8 @@ Secondly, we demonstrate (Section~\ref{sec:varying:study}) that varying the age-
 Experiments (Section~\ref{sec:experiments}) with these new options implemented in the Vampire theorem prover show a significant improvement, proving many new problems unsolvable by any current configuration of Vampire as well as other competitive solvers.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Background} \label{sec:background}
+\section{Background}
+\label{sec:background}
 
 This section introduces the relevant background for the rest of the paper.
 
@@ -180,7 +179,6 @@ We note here that Vampire's portfolio mode includes an additional option relevan
 \paragraph{Related Work.} \todo{Mention clause selection strategies of Otter, Prover9, E, and SPASS}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newpage~\newpage
 \section{Optimising Age/Weight Ratios} \label{sec:awr:study}
 
 We set out to experimentally confirm two assumptions from folklore:
@@ -205,7 +203,7 @@ As \(L\) tends to positive infinity, Vampire selects only by weight, whereas if 
 	\centering
 	\includegraphics[width=0.8\textwidth]{example-optimal-awr}
 	\caption{
-The number of active clauses reported by Vampire after successful 1-second runs on a TPTP problem.
+The number of activations reported by Vampire after successful 1-second runs on a TPTP problem.
 In between the peaks on either side, the function of \(L\) is discontinuous with large peaks and troughs, but follows an approximate trend and settles toward the global optimum.
 This is typical for the observed set of problems.
 }
@@ -213,26 +211,33 @@ This is typical for the observed set of problems.
 \end{figure}
 
 \subsection{Experiments}
-%Changing Vampire's fixed AWR has a significant effect on the number of clauses required to be processed before a proof is found.
 As an initial illustrative example of how varying the AWR effects the number of clauses required to be processed before a proof is found consider Figure \ref{fig:example-optimal-awr}. This shows \todo{FINISH}
 
 
-  shows the effect of varying AWR on an illustrative problem from TPTP: a smaller number of active clauses means that fewer clauses were processed, which in general means that a proof was found faster\footnote{
+  shows the effect of varying AWR on an illustrative problem from TPTP: a smaller number of activations means that fewer clauses were processed, which in general means that a proof was found faster\footnote{
 It should be noted that if a small number of clauses are extremely expensive to process it may be slower than a larger number of less-expensive clauses, but in general this is a good heuristic measure for prover performance.
 It also avoids reproducibility issues involved with using system timing approaches.
 }.
 On this problem, a good AWR value is over 400\% better by this metric than the worst AWR value.
 
-
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=0.8\textwidth]{example-optimal-awr}
+	\caption{
+The number of activations reported by Vampire after successful 1-second runs on a TPTP problem.
+In between the peaks on either side, the function of \(L\) is discontinuous with large peaks and troughs, but does follow an approximate trend and settles toward the global optimum.
+These properties are typical for the observed set of problems.
+}
+	\label{fig:example-optimal-awr}
+\end{figure}
 
 This experiment was repeated on the whole TPTP problem set, excluding problems Vampire does not support, problems which were not solved by the default mode in under a second for any AWR value, and problems solved in pre-processing.
 The whole set yielded similar AWR data for 7,947 problems.
-These data show that while there is no ``best'' AWR for the whole set (Table \ref{tab:no-best-awr}), choosing a good AWR value for a problem is well-rewarded (Figure \ref{fig:optimal-awr-improvement}).
+These data show that while there is no ``best'' AWR for the whole set (Table \ref{tab:no-best-awr}), choosing a good AWR value for a problem is well-rewarded (Table \ref{tab:awr-improvement}).
 
 \noindent
  \todo{Can we also capture the solved/unsolved balance? Perhaps just say what \% of solved problems were solved using that ratio.}
 \todo{This discussion should be expanded. Results need more explanation and we should summarise e.g. yes we confirmed assumptions.}\\
-\todo{Can we extract some general information on correlation (or lack thereof) between best AWRs and syntactic features?}
 
 \begin{table}[t]
 	\caption{The mean relative performance drop (in terms of activations compared to an optimal value) choosing a single AWR over an entire problem set causes. No setting is significantly ``better'' or ``worse'' than the others, but some have more variance in performance. A ratio of 1:4 produces an unusually well-behaved maximum performance drop. \sandm~found that 1:5 had a similar property, but this might be explained by differences in test environment.}
@@ -274,16 +279,19 @@ AWR & Maximum Drop & Mean Drop & (Standard Deviation)\\
 	\label{tab:no-best-awr}
 \end{table}
 
-\begin{figure}
+\begin{table}
+	\caption{Relative performance gain, showing the ratio in activations between the best AWR setting for a given problem and another base setting. We compare the base settings of 1:1 (Vampire's default), 1:5 (the best-behaved from Table \ref{tab:no-best-awr}), and the worst setting for the problem.}
 	\centering
-	\includegraphics[width=0.8\textwidth]{optimal-awr-improvement}
-	\caption{The distribution of the relative performance gain choosing the best AWR value creates, relative to the worst AWR value.}
-	\label{fig:optimal-awr-improvement}
-\end{figure}
+	\begin{tabular}{c | c | c c}
+		& Maximum Gain & Mean Gain & (Standard Deviation)\\
+		\hline
+		1:1 & 133.56 & 1.26 & 1.63 \\
+		1:5 & 133.67 & 1.44 & 1.70 \\
+		(worst) & 222.01 & 3.95 & 7.60 \\
+	\end{tabular}
+	\label{tab:awr-improvement}
+\end{table}
 
-
-
-\clearpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Variable AWR for Vampire} 
 
@@ -297,12 +305,10 @@ Additionally, given that varying the AWR can have such a large impact, it seems 
 This can be shown by running Vampire with a randomised sequence of age/weight ratios given by a random walk repeatedly, then finding the best after a large number of repetitions.
 Applying this method with 10,000 repetitions to the problem seen earlier (\texttt{PRO017+2}) yields the example AWR trend shown in Figure \ref{fig:random-walk}, which reduces the best number of activations from 330 with a fixed AWR, to 287 with a varying AWR.
 
-\todo{A little more explanation of the Fig... eg what is AWR trend?}
-
 Unsurprisingly, in ad-hoc experiments on other problems, the best shape is rarely constant.
 This suggests that implementing other shapes, such as an increasing or decreasing trend, might lead to quicker proofs in the Vampire theorem prover.
 
-\begin{figure}
+\begin{figure}[t]
 	\centering
 	\includegraphics[width=0.8\textwidth]{random-walk}
 	\caption{The AWR series that produced the lowest number of activations on a particular problem, smoothed in order to show the actual effect on proof search. This is a search strategy that a single fixed AWR cannot reproduce.}
@@ -329,8 +335,6 @@ Since a simple linear shape does not extend well to indefinite proof search (it 
 These shapes are further parameterised by an integral \emph{shape frequency} setting, which controls the rate of decay or convergence: every \(n\) steps, the difference between the current and the target AWR is halved, rounding where necessary.
 In future, this might allow the use of repeating patterns such as a sinusoid, hence \emph{frequency}.
 
-\todo{Given that we don't, perhaps we should change the parameter to \emph{rate} or something else?}
-
 Our approach here was restricted by the balancing algorithm used internally, as AWR steps must be discrete and do not take effect immediately.
 An alternative approach might use an age/weight probability, rather than a ratio, from which age or weight decisions would be pseudo-randomly (but reproducibly) taken with the use of a seeded PRNG.
 This would permit use of continuous age/weight functions, but would also introduce the possibility of ``getting unlucky'' in which a clause preferred by the age/weight probability is not selected due to an improbable-but-possible series of PRNG samples.
@@ -342,8 +346,8 @@ This would permit use of continuous age/weight functions, but would also introdu
 	\label{fig:decay-and-converge}
 \end{figure}
 
-Together, these new settings allow a number of new option combinations, which can be used in conjunction with Vampire's portfolio \emph{CASC mode} pending integration into the strategy schedules.
-This version of the prover is currently in a separate branch in the main Vampire repository\footnote{\texttt{https://github.com/vprover/vampire/tree/awr-shapes}}.
+Together, these new settings allow a number of new option combinations, which can be used in conjunction with Vampire's portfolio mode pending integration into the strategy schedules.
+This version of the prover is currently in a separate branch in the main Vampire source repository\footnote{\texttt{https://github.com/vprover/vampire/tree/awr-shapes}}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Experimental Evaluation}
@@ -361,44 +365,47 @@ The baseline solved 13,057 problems in total.
 No experimental configuration improved on this figure, but some problems not solved by baseline were solved by the new configurations, and some entirely new problems were solved.
 
 \subsection{Benchmark Performance}
-Figure \ref{fig:results} shows the performance in terms of solved problems of all the configurations tested.
+Figure \ref{tab:results} shows the performance in terms of solved problems of all the configurations tested.
 These data show that configurations which are more similar to the baseline (i.e. slow decay or fast convergence) achieve more similar performance, as expected.
 In total, 134 problems were solved by the new configurations that were not solved by the baseline.
 
-\begin{figure}
-\centering
-\begin{tabular}{l l l l l l}
-	Configuration & Frequency & Proved & Fresh & Uniques & \(u\)-score\\
-	\hline
-	baseline & -- & 13057 & 0 & 1 & 714.2\\
-	converge & 1 & 13039 & 24 & 3 & 714.3\\
-	converge & 5 & 13029 & 27 & 1 & 709.5\\
-	converge & 10 & 13028 & 35 & 5 & 714.3\\
-	converge & 50 & 13015 & 45 & 5 & 712.8\\
-	converge & 100 & 12976 & 51 & 1 & 705.9\\
-	converge & 500 & 12895 & 63 & 4 & 698.3\\
-	converge & 1000 & 12837 & 52 & 0 & 688.6\\
-	converge & 5000 & 12775 & 53 & 1 & 682.4\\
-	converge & 10000 & 12751 & 53 & 0 & 678.7\\
-	decay & 1 & 12698 & 48 & 1 & 673.6\\
-	decay & 5 & 12702 & 51 & 1 & 674.9\\
-	decay & 10 & 12698 & 48 & 1 & 674.2\\
-	decay & 50 & 12712 & 49 & 2 & 679.1\\
-	decay & 100 & 12726 & 46 & 1 & 678.8\\
-	decay & 500 & 12795 & 29 & 1 & 685.5\\
-	decay & 1000 & 12860 & 29 & 2 & 692.6\\
-	decay & 5000 & 12982 & 16 & 2 & 707.1\\
-	decay & 10000 & 13002 & 7 & 0 & 706.3\\
-\end{tabular}
-\caption{
+\begin{table}
+	\caption{
 Results for the tested configurations.
 \emph{Proved} refers to the total number of problems a configuration solved.
 \emph{Fresh} is the number of problems a configuration solved which were not solved by the baseline.
 \emph{Uniques} is the number of problems a configuration solved which were not solved by any other configuration.
 \emph{\(u\)-score} is a refined unique score which correlates to a configuration's utility in solving new problems, as used in Hoder \emph{et al.}~\cite{u-score}.
-}
-\label{fig:results}
-\end{figure}
+	}
+	\centering
+	\begin{tabular}{l l l l l l}
+		Configuration & Frequency & Proved & Fresh & Uniques & \(u\)-score\\
+		\hline
+		baseline & -- & 13057 & 0 & 1 & 714.2\\
+		converge & 1 & 13039 & 24 & 3 & 714.3\\
+		converge & 5 & 13029 & 27 & 1 & 709.5\\
+		converge & 10 & 13028 & 35 & 5 & 714.3\\
+		converge & 50 & 13015 & 45 & 5 & 712.8\\
+		converge & 100 & 12976 & 51 & 1 & 705.9\\
+		converge & 500 & 12895 & 63 & 4 & 698.3\\
+		converge & 1000 & 12837 & 52 & 0 & 688.6\\
+		converge & 5000 & 12775 & 53 & 1 & 682.4\\
+		converge & 10000 & 12751 & 53 & 0 & 678.7\\
+		decay & 1 & 12698 & 48 & 1 & 673.6\\
+		decay & 5 & 12702 & 51 & 1 & 674.9\\
+		decay & 10 & 12698 & 48 & 1 & 674.2\\
+		decay & 50 & 12712 & 49 & 2 & 679.1\\
+		decay & 100 & 12726 & 46 & 1 & 678.8\\
+		decay & 500 & 12795 & 29 & 1 & 685.5\\
+		decay & 1000 & 12860 & 29 & 2 & 692.6\\
+		decay & 5000 & 12982 & 16 & 2 & 707.1\\
+		decay & 10000 & 13002 & 7 & 0 & 706.3\\
+		\hline
+		converge & (combined) & 13167 & 117 & -- & --\\
+		decay & (combined) & 13106 & 93 & -- & --\\
+	\end{tabular}
+	\label{tab:results}
+\end{table}
 
 \subsection{New Problems}
 Some problems were solved which were marked as ``Unknown'' status in the TPTP headers.
