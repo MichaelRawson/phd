@@ -235,52 +235,56 @@ This experiment was repeated on the whole TPTP problem set, excluding problems V
 The whole set yielded similar AWR data for 7,947 problems.
 These data show that while there is no ``best'' AWR for the whole set (Table \ref{tab:no-best-awr}), choosing a good AWR value for a problem is well-rewarded (Table \ref{tab:awr-improvement}).
 
-\noindent
- \todo{Can we also capture the solved/unsolved balance? Perhaps just say what \% of solved problems were solved using that ratio.}
-\todo{This discussion should be expanded. Results need more explanation and we should summarise e.g. yes we confirmed assumptions.}\\
+\todo{This discussion should be expanded. Results need more explanation and we should summarise e.g. yes we confirmed assumptions.}
 
 \begin{table}[t]
-	\caption{The mean relative performance drop (in terms of activations compared to an optimal value) choosing a single AWR over an entire problem set causes. No setting is significantly ``better'' or ``worse'' than the others, but some have more variance in performance. A ratio of 1:4 produces an unusually well-behaved maximum performance drop. \sandm~found that 1:5 had a similar property, but this might be explained by differences in test environment.}
+	\caption{
+The mean relative performance drop (in terms of activations compared to an optimal value) choosing a single AWR over an entire problem set causes.
+The percentage of problems in this set solved by the AWR setting is also shown.
+No setting is significantly ``better'' or ``worse'' than the others, but some have more variance in performance.
+A ratio of 1:4 produces an unusually well-behaved maximum performance drop.
+\sandm~found that 1:5 had a similar property, but this might be explained by differences in test environment.
+}
 	\centering
-	\begin{tabular}{l | c | c  c }
-AWR & Maximum Drop & Mean Drop & (Standard Deviation)\\
+	\begin{tabular}{l | c | c | c  c }
+		AWR & \% Solved & Maximum Drop & Mean Drop & (Standard Deviation)\\
 \hline
-8:1 & 150.67 & 1.37 & 1.98\\
-5:1 & 122.22 & 1.33 & 1.64\\
-4:1 & 101.44 & 1.32 & 1.42\\
-3:1 & 105.00 & 1.29 & 1.41\\
-2:1 & 112.67 & 1.27 & 1.45\\
-3:2 & 119.89 & 1.27 & 1.51\\
-5:4 & 125.00 & 1.26 & 1.55\\
-1 & 133.56 & 1.26 & 1.63\\
-2:3 & 147.67 & 1.28 & 1.79\\
-2 & 162.67 & 1.31 & 1.97\\
-3 & 190.56 & 1.37 & 2.30\\
-4 & 17.41 & 1.38 & 0.67\\
-5 & 133.67 & 1.44 & 1.70\\
-6 & 106.44 & 1.47 & 1.46\\
-7 & 104.89 & 1.49 & 1.44\\
-8 & 101.33 & 1.53 & 1.45\\
-10 & 101.78 & 1.60 & 1.53\\
-12 & 101.67 & 1.65 & 1.62\\
-14 & 103.00 & 1.70 & 1.75\\
-16 & 101.33 & 1.74 & 1.76\\
-20 & 100.89 & 1.82 & 1.94\\
-24 & 101.33 & 1.89 & 2.08\\
-28 & 99.22 & 1.96 & 2.24\\
-32 & 100.00 & 1.99 & 2.36\\
-40 & 98.78 & 2.09 & 2.64\\
-50 & 98.78 & 2.17 & 2.88\\
-64 & 101.22 & 2.28 & 3.19\\
-128 & 107.44 & 2.57 & 4.16\\
-1024 & 222.01 & 2.83 & 7.55
+8:1 & 85.25 & 150.67 & 1.37 & 1.98\\
+5:1 & 86.10 & 122.22 & 1.33 & 1.64\\
+4:1 & 86.93 & 101.44 & 1.32 & 1.42\\
+3:1 & 87.63 & 105.00 & 1.29 & 1.41\\
+2:1 & 88.62 & 112.67 & 1.27 & 1.45\\
+3:2 & 89.83 & 119.89 & 1.27 & 1.51\\
+5:4 & 89.98 & 125.00 & 1.26 & 1.55\\
+1   & 90.56 & 133.56 & 1.26 & 1.63\\
+2:3 & 91.20 & 147.67 & 1.28 & 1.79\\
+2   & 91.68 & 162.67 & 1.31 & 1.97\\
+3   & 91.81 & 190.56 & 1.37 & 2.30\\
+4   & 91.85 & 17.41 & 1.38 & 0.67\\
+5   & 92.00 & 133.67 & 1.44 & 1.70\\
+6   & 91.57 & 106.44 & 1.47 & 1.46\\
+7   & 91.49 & 104.89 & 1.49 & 1.44\\
+8   & 91.09 & 101.33 & 1.53 & 1.45\\
+10  & 90.52 & 101.78 & 1.60 & 1.53\\
+12  & 90.00 & 101.67 & 1.65 & 1.62\\
+14  & 89.29 & 103.00 & 1.70 & 1.75\\
+16  & 89.42 & 101.33 & 1.74 & 1.76\\
+20  & 88.61 & 100.89 & 1.82 & 1.94\\
+24  & 88.26 & 101.33 & 1.89 & 2.08\\
+28  & 87.57 & 99.22 & 1.96 & 2.24\\
+32  & 87.01 & 100.00 & 1.99 & 2.36\\
+40  & 86.23 & 98.78 & 2.09 & 2.64\\
+50  & 84.93 & 98.78 & 2.17 & 2.88\\
+64  & 84.17 & 101.22 & 2.28 & 3.19\\
+128 & 81.34 & 107.44 & 2.57 & 4.16\\
+1024 & 73.11 & 222.01 & 2.83 & 7.55
 	\end{tabular}
 
 	\label{tab:no-best-awr}
 \end{table}
 
 \begin{table}
-	\caption{Relative performance gain, showing the ratio in activations between the best AWR setting for a given problem and another base setting. We compare the base settings of 1:1 (Vampire's default), 1:5 (the best-behaved from Table \ref{tab:no-best-awr}), and the worst setting for the problem.}
+	\caption{Relative performance gain, showing the ratio in activations between the best AWR setting for a given problem and another base setting. We compare the base settings of 1:1 (Vampire's default), 1:5 (the best-behaved from \sandm), and the worst setting for the problem.}
 	\centering
 	\begin{tabular}{c | c | c c}
 		& Maximum Gain & Mean Gain & (Standard Deviation)\\
@@ -328,12 +332,10 @@ However, some details constrain the design space:
 \end{enumerate}
 
 In this work we selected two general trends to explore: a trend away from the original (fixed) AWR toward 1:1 (``decay''), and a trend from 1:1 toward the original setting (``converge'').
-Since a simple linear shape does not extend well to indefinite proof search (it is unclear what should happen after either 1:1 or the target AWR is reached), an exponential decay function is used instead, as shown in Figure \ref{fig:decay-and-converge}.
-
-\todo{What are these figures showing?}
-
-These shapes are further parameterised by an integral \emph{shape frequency} setting, which controls the rate of decay or convergence: every \(n\) steps, the difference between the current and the target AWR is halved, rounding where necessary.
+Since a simple linear shape does not extend well to indefinite proof search (it is unclear what should happen after either 1:1 or the target AWR is reached), an exponential decay function is used instead.
+These exponential shapes are further parameterised by an integral \emph{shape frequency} setting, which controls the rate of decay or convergence: every \(n\) steps, the difference between the current and the target AWR is halved, rounding where necessary.
 In future, this might allow the use of repeating patterns such as a sinusoid, hence \emph{frequency}.
+Figure \ref{fig:decay-and-converge} shows rates at which the new configurations converge or decay from the fixed AWR setting for some indicative frequency settings.
 
 Our approach here was restricted by the balancing algorithm used internally, as AWR steps must be discrete and do not take effect immediately.
 An alternative approach might use an age/weight probability, rather than a ratio, from which age or weight decisions would be pseudo-randomly (but reproducibly) taken with the use of a seeded PRNG.
@@ -352,19 +354,16 @@ This version of the prover is currently in a separate branch in the main Vampire
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Experimental Evaluation}
 \label{sec:experiments}
-
-\todo{Change marketing here. Success is adding new options to portfolio mode. Only mention CASC once and refer to portfolio mode elsewhere.}
-
-In practice, decaying from an age-biased initial AWR to 1:1 (or converging backwards) was not found to be an improvement.
-However, age/weight shapes decaying from or converging to a weight-based AWR were found to be useful in some cases.
-An experimental evaluation of this approach on the TPTP~\cite{tptp} benchmark follows.
-
+\todo{Only mention CASC once and refer to portfolio mode elsewhere.}
+An experimental evaluation of this approach on the TPTP\footnote{version 7.1.0} benchmark~\cite{tptp} follows.
 Vampire first ran to establish baseline performance in its competition \emph{CASC mode} on all problems in TPTP, with a wallclock time limit of 300 seconds.
 For experimental purposes, the same environment was preserved with the exception of activating the new ``shapes'' settings with a range of different shape frequencies.
-The baseline solved 13,057 problems in total.
-No experimental configuration improved on this figure, but some problems not solved by baseline were solved by the new configurations, and some entirely new problems were solved.
 
 \subsection{Benchmark Performance}
+The baseline solved 13,057 problems in total.
+No experimental configuration improved on this figure, but some problems not solved by baseline were solved by the new configurations, and some entirely new problems were solved.
+The union of all \emph{converge} and \emph{decay} configurations improved on the baseline, with 13,167 and 13,106 solved problems respectively.
+
 Figure \ref{tab:results} shows the performance in terms of solved problems of all the configurations tested.
 These data show that configurations which are more similar to the baseline (i.e. slow decay or fast convergence) achieve more similar performance, as expected.
 In total, 134 problems were solved by the new configurations that were not solved by the baseline.
@@ -408,7 +407,7 @@ Results for the tested configurations.
 \end{table}
 
 \subsection{New Problems}
-Some problems were solved which were marked as ``Unknown'' status in the TPTP headers.
+Some problems were solved which were marked with an ``Unknown'' status in the TPTP headers.
 Vampire baseline (and several configurations) were able to solve \texttt{GEO120+1}, but only converging with frequency 50 solved \texttt{SET345-6} and only decaying with frequency 1 solved \texttt{LAT320+3}.
 
 
