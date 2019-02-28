@@ -113,7 +113,7 @@ Realisations of the given clause algorithm generally differ in how they organise
 
 The algorithm is centred around the \emph{clause selection} process. As previously mentioned, there are two main heuristics for this:
 \begin{itemize}
-	\item \emph{By Age (or First-in/First-out)} clause selection prefers the oldest clause, simulating a \emph{breadth-first} search of the clause space.
+	\item \emph{By Age (or First-in/First-out)} clause selection prefers the oldest clause (produced earlier in proof search), simulating a \emph{breadth-first} search of the clause space. In Vampire the age of a clause is the number of inferences performed to produce it (e.g. input clauses have age 0).
 	\item \emph{By Weight (or symbol-counting)} clause selection prefers the youngest clause (with the fewest symbols). The intuition behind this approach is that the sought empty clause has zero symbols and lighter clauses are (in some sense) closer to this. Furthermore, lighter clauses are friendlier (less explosive) to proof search in various ways e.g. they are more general in terms of subsumption and tend to have fewer children.
 \end{itemize}
 It has been shown (see \sandm{}) that alternating these heuristics is beneficial and we consider this setting here. In Vampire this alternation is achieved by an age/weight ratio (AWR) implemented by a simple \emph{balancing} algorithm. The balance is initialised to 0 and used as follows: a positive balance means that a clause should be selected by age, whereas a negative balance means that a clause should be selected by weight; given a ratio of $a:w$ the balance is incremented by $a$ when selecting by age and decremented by $w$ when selecting by weight.
@@ -180,7 +180,7 @@ We note here that Vampire's portfolio mode includes an additional option relevan
 \paragraph{Related Work.} \todo{Mention clause selection strategies of Otter, Prover9, E, and SPASS}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newpage
+\newpage~\newpage
 \section{Optimising Age/Weight Ratios} \label{sec:awr:study}
 
 We set out to experimentally confirm two assumptions from folklore:
@@ -201,6 +201,16 @@ With this definition, AWR can now be seen continuously.
 As \(L\) tends to positive infinity, Vampire selects only by weight, whereas if \(L\) tends to negative infinity Vampire selects only by age.
 \(L = 0\) represents the middle ground of a 1:1 age/weight ratio.
 
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=0.8\textwidth]{example-optimal-awr}
+	\caption{
+The number of active clauses reported by Vampire after successful 1-second runs on a TPTP problem.
+In between the peaks on either side, the function of \(L\) is discontinuous with large peaks and troughs, but follows an approximate trend and settles toward the global optimum.
+This is typical for the observed set of problems.
+}
+	\label{fig:example-optimal-awr}
+\end{figure}
 
 \subsection{Experiments}
 %Changing Vampire's fixed AWR has a significant effect on the number of clauses required to be processed before a proof is found.
@@ -213,30 +223,22 @@ It also avoids reproducibility issues involved with using system timing approach
 }.
 On this problem, a good AWR value is over 400\% better by this metric than the worst AWR value.
 
-\begin{figure}[t]
-	\centering
-	\includegraphics[width=0.8\textwidth]{example-optimal-awr}
-	\caption{
-The number of active clauses reported by Vampire after successful 1-second runs on a TPTP problem.
-In between the peaks on either side, the function of \(L\) is discontinuous with large peaks and troughs, but does follow an approximate trend and settles toward the global optimum.
-These properties are typical for the observed set of problems.
-}
-	\label{fig:example-optimal-awr}
-\end{figure}
+
 
 This experiment was repeated on the whole TPTP problem set, excluding problems Vampire does not support, problems which were not solved by the default mode in under a second for any AWR value, and problems solved in pre-processing.
 The whole set yielded similar AWR data for 7,947 problems.
-These data show that while there is no ``best'' AWR for the whole set (Figure \ref{fig:no-best-awr}), choosing a good AWR value for a problem is well-rewarded (Figure \ref{fig:optimal-awr-improvement}).
+These data show that while there is no ``best'' AWR for the whole set (Table \ref{tab:no-best-awr}), choosing a good AWR value for a problem is well-rewarded (Figure \ref{fig:optimal-awr-improvement}).
 
 \noindent
  \todo{Can we also capture the solved/unsolved balance? Perhaps just say what \% of solved problems were solved using that ratio.}
 \todo{This discussion should be expanded. Results need more explanation and we should summarise e.g. yes we confirmed assumptions.}\\
 \todo{Can we extract some general information on correlation (or lack thereof) between best AWRs and syntactic features?}
 
-\begin{figure}[t]
+\begin{table}[t]
+	\caption{The mean relative performance drop (in terms of activations compared to an optimal value) choosing a single AWR over an entire problem set causes. No setting is significantly ``better'' or ``worse'' than the others, but some have more variance in performance. A ratio of 1:4 produces an unusually well-behaved maximum performance drop. \sandm~found that 1:5 had a similar property, but this might be explained by differences in test environment.}
 	\centering
-	\begin{tabular}{l l l l l}
-AWR & Maximum & Mean & Standard Deviation\\
+	\begin{tabular}{l | c | c  c }
+AWR & Maximum Drop & Mean Drop & (Standard Deviation)\\
 \hline
 8:1 & 150.67 & 1.37 & 1.98\\
 5:1 & 122.22 & 1.33 & 1.64\\
@@ -268,9 +270,9 @@ AWR & Maximum & Mean & Standard Deviation\\
 128 & 107.44 & 2.57 & 4.16\\
 1024 & 222.01 & 2.83 & 7.55
 	\end{tabular}
-	\caption{The mean relative performance drop (in terms of activations compared to an optimal value) choosing a single AWR over an entire problem set causes. No setting is significantly ``better'' or ``worse'' than the others, but some have more variance in performance. A ratio of 1:4 produces an unusually well-behaved maximum performance drop. \sandm~found that 1:5 had a similar property, but this might be explained by differences in test environment.}
-	\label{fig:no-best-awr}
-\end{figure}
+
+	\label{tab:no-best-awr}
+\end{table}
 
 \begin{figure}
 	\centering
@@ -281,7 +283,7 @@ AWR & Maximum & Mean & Standard Deviation\\
 
 
 
-
+\clearpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Variable AWR for Vampire} 
 
