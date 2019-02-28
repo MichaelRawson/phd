@@ -5,6 +5,7 @@
 \usepackage{amssymb}
 \usepackage{amsmath}
 \usepackage{todonotes}
+%\newcommand{\todo}[1]{}
 
 \title{Old or Heavy?\\Decaying Gracefully with Age/Weight Shapes.}
 \titlerunning{Dynamic Strategy Priority}
@@ -178,6 +179,7 @@ We note here that Vampire's portfolio mode includes an additional option relevan
 %%%%%%
 \paragraph{Related Work.} \todo{Mention clause selection strategies of Otter, Prover9, E, and SPASS}
 
+\newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Optimising Age/Weight Ratios} \label{sec:awr:study}
 
@@ -211,31 +213,24 @@ This is typical for the observed set of problems.
 \end{figure}
 
 \subsection{Experiments}
-As an initial illustrative example of how varying the AWR effects the number of clauses required to be processed before a proof is found consider Figure \ref{fig:example-optimal-awr}. This shows \todo{FINISH}
-
-
-  shows the effect of varying AWR on an illustrative problem from TPTP: a smaller number of activations means that fewer clauses were processed, which in general means that a proof was found faster\footnote{
+As an initial illustrative example of how varying the AWR effects the number of clauses required to be processed before a proof is found consider Figure \ref{fig:example-optimal-awr}. This demonstrates the effect that varying AWR can have: a smaller number of activations means that fewer clauses were processed, which in general means that a proof was found faster\footnote{
 It should be noted that if a small number of clauses are extremely expensive to process it may be slower than a larger number of less-expensive clauses, but in general this is a good heuristic measure for prover performance.
 It also avoids reproducibility issues involved with using system timing approaches.
 }.
 On this problem, a good AWR value is over 400\% better by this metric than the worst AWR value.
 
-\begin{figure}[t]
-	\centering
-	\includegraphics[width=0.8\textwidth]{example-optimal-awr}
-	\caption{
-The number of activations reported by Vampire after successful 1-second runs on a TPTP problem.
-In between the peaks on either side, the function of \(L\) is discontinuous with large peaks and troughs, but does follow an approximate trend and settles toward the global optimum.
-These properties are typical for the observed set of problems.
-}
-	\label{fig:example-optimal-awr}
-\end{figure}
 
-This experiment was repeated on the whole TPTP problem set, excluding problems Vampire does not support, problems which were not solved by the default mode in under a second for any AWR value, and problems solved in pre-processing.
-The whole set yielded similar AWR data for 7,947 problems.
-These data show that while there is no ``best'' AWR for the whole set (Table \ref{tab:no-best-awr}), choosing a good AWR value for a problem is well-rewarded (Table \ref{tab:awr-improvement}).
+This experiment was repeated on the whole TPTP problem set, excluding problems Vampire does not support, problems which were not solved by the default mode in under a second for any AWR value, and problems solved in pre-processing. The whole set yielded similar AWR data for 7,947 problems. 
+%
+We selected a sensible set of AWR values (see Table \ref{tab:awr-improvement}) - these are the values used in Vampire's portfolio mode. These tend to favour weight-first over age-first as this has been experimentally shown to be preferable.
 
-\todo{This discussion should be expanded. Results need more explanation and we should summarise e.g. yes we confirmed assumptions.}
+The results of these experiments are presented in Tables \ref{tab:no-best-awr} and \ref{tab:awr-improvement}. 
+%
+Table \ref{tab:no-best-awr}  shows that there is no ``best'' AWR for the whole set. 
+%
+Table \ref{tab:awr-improvement} shows that choosing a good AWR value for a problem is well-rewarded. 
+%
+Therefore, these experimental results confirm the previous assumptions often made in folklore.
 
 \begin{table}[t]
 	\caption{
@@ -299,6 +294,7 @@ Where the problem is not solved at all by the base setting, it is ignored.
 	\label{tab:awr-improvement}
 \end{table}
 
+\clearpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Variable AWR for Vampire} 
 
@@ -344,7 +340,7 @@ Our approach here was restricted by the balancing algorithm used internally, as 
 An alternative approach might use an age/weight probability, rather than a ratio, from which age or weight decisions would be pseudo-randomly (but reproducibly) taken with the use of a seeded PRNG.
 This would permit use of continuous age/weight functions, but would also introduce the possibility of ``getting unlucky'' in which a clause preferred by the age/weight probability is not selected due to an improbable-but-possible series of PRNG samples.
 
-\begin{figure}
+\begin{figure}[t]
 	\subfloat{\includegraphics[width=0.5\textwidth]{shape-decay}}
 	\subfloat{\includegraphics[width=0.5\textwidth]{shape-converge}}
 	\caption{The new \emph{decay} and \emph{converge} AWR shapes as implemented in Vampire. Different curves exhibit the effect of the AWR shape frequency setting.}
@@ -354,6 +350,7 @@ This would permit use of continuous age/weight functions, but would also introdu
 Together, these new settings allow a number of new option combinations, which can be used in conjunction with Vampire's portfolio mode pending integration into the strategy schedules.
 This version of the prover is currently in a separate branch in the main Vampire source repository\footnote{\texttt{https://github.com/vprover/vampire/tree/awr-shapes}}.
 
+\newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Experimental Evaluation}
 \label{sec:experiments}
@@ -413,6 +410,7 @@ Results for the tested configurations.
 Some problems were solved which were marked with an ``Unknown'' status in the TPTP headers.
 Vampire baseline (and several configurations) were able to solve \texttt{GEO120+1}, but only converging with frequency 50 solved \texttt{SET345-6} and only decaying with frequency 1 solved \texttt{LAT320+3}.
 
+\clearpage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusions and Future Work}
