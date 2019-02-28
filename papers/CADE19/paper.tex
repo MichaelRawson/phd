@@ -32,7 +32,7 @@ The modes solve a number of new problems in the TPTP benchmark.
 \section{Introduction}
 \label{sec:introduction}
 
-Currently, the most successful theorem provers (such as Vampire~\cite{vampire}, E~\cite{}, or SPASS~\cite{}) for first-order logic are saturation-based, utilising the well-known \emph{given-clause algorithm}.
+Currently, the most successful theorem provers (such as Vampire~\cite{vampire}, E~\cite{E}, or SPASS~\cite{Spass}) for first-order logic are saturation-based, utilising the well-known \emph{given-clause algorithm}.
 Simply, this algorithm \emph{saturates} a set of clauses by iteratively selecting a clause and performing all non-redundant inferences with it until all clauses have been selected or the empty clause (witnessing inconsistency) has been found.
 Clearly, the order in which clauses are selected is key to the performance of the algorithm.
 Over the past few decades a certain amount of folklore has built up around the best methods for clause selection and recent work by \sandm{} \cite{clause-selection-heuristics} systematically studied these.
