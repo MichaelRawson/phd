@@ -239,52 +239,55 @@ These data show that while there is no ``best'' AWR for the whole set (Table \re
 
 \begin{table}[t]
 	\caption{
-The mean relative performance drop (in terms of activations compared to an optimal value) choosing a single AWR over an entire problem set causes.
+The mean relative performance drop (in terms of activations compared to an optimal value) choosing a single AWR over the problem set (approx. 8,000 problems solved in 1 second) causes.
 The percentage of problems in this set solved by the AWR setting is also shown.
 No setting is significantly ``better'' or ``worse'' than the others, but some have more variance in performance.
 A ratio of 1:4 produces an unusually well-behaved maximum performance drop.
-\sandm~found that 1:5 had a similar property, but this might be explained by differences in test environment.
+\sandm~found that 1:5 had a similar property, but this might be explained by differences in prover and test environment.
 }
 	\centering
-	\begin{tabular}{l | c | c | c  c }
-		AWR & \% Solved & Maximum Drop & Mean Drop & (Standard Deviation)\\
+	\begin{tabular}{l | c | c | c | c  c }
+		AWR & \% Solved & Uniques & Maximum Drop & Mean Drop & (Standard Deviation)\\
 \hline
-8:1 & 85.25 & 150.67 & 1.37 & 1.98\\
-5:1 & 86.10 & 122.22 & 1.33 & 1.64\\
-4:1 & 86.93 & 101.44 & 1.32 & 1.42\\
-3:1 & 87.63 & 105.00 & 1.29 & 1.41\\
-2:1 & 88.62 & 112.67 & 1.27 & 1.45\\
-3:2 & 89.83 & 119.89 & 1.27 & 1.51\\
-5:4 & 89.98 & 125.00 & 1.26 & 1.55\\
-1   & 90.56 & 133.56 & 1.26 & 1.63\\
-2:3 & 91.20 & 147.67 & 1.28 & 1.79\\
-2   & 91.68 & 162.67 & 1.31 & 1.97\\
-3   & 91.81 & 190.56 & 1.37 & 2.30\\
-4   & 91.85 & 17.41 & 1.38 & 0.67\\
-5   & 92.00 & 133.67 & 1.44 & 1.70\\
-6   & 91.57 & 106.44 & 1.47 & 1.46\\
-7   & 91.49 & 104.89 & 1.49 & 1.44\\
-8   & 91.09 & 101.33 & 1.53 & 1.45\\
-10  & 90.52 & 101.78 & 1.60 & 1.53\\
-12  & 90.00 & 101.67 & 1.65 & 1.62\\
-14  & 89.29 & 103.00 & 1.70 & 1.75\\
-16  & 89.42 & 101.33 & 1.74 & 1.76\\
-20  & 88.61 & 100.89 & 1.82 & 1.94\\
-24  & 88.26 & 101.33 & 1.89 & 2.08\\
-28  & 87.57 & 99.22 & 1.96 & 2.24\\
-32  & 87.01 & 100.00 & 1.99 & 2.36\\
-40  & 86.23 & 98.78 & 2.09 & 2.64\\
-50  & 84.93 & 98.78 & 2.17 & 2.88\\
-64  & 84.17 & 101.22 & 2.28 & 3.19\\
-128 & 81.34 & 107.44 & 2.57 & 4.16\\
-1024 & 73.11 & 222.01 & 2.83 & 7.55
+8:1 & 85.25 & 16 & 150.67 & 1.37 & 1.98\\
+5:1 & 86.10 & 1 & 122.22 & 1.33 & 1.64\\
+4:1 & 86.93 & 1 & 101.44 & 1.32 & 1.42\\
+3:1 & 87.63 & 2 & 105.00 & 1.29 & 1.41\\
+2:1 & 88.62 & 3 & 112.67 & 1.27 & 1.45\\
+3:2 & 89.83 & 2 & 119.89 & 1.27 & 1.51\\
+5:4 & 89.98 & 4 & 125.00 & 1.26 & 1.55\\
+1   & 90.56 & 4 & 133.56 & 1.26 & 1.63\\
+2:3 & 91.20 & 9 & 147.67 & 1.28 & 1.79\\
+2   & 91.68 & 0 & 162.67 & 1.31 & 1.97\\
+3   & 91.81 & 5 & 190.56 & 1.37 & 2.30\\
+4   & 91.85 & 3 & \textbf{17.41} & 1.38 & 0.67\\
+5   & 92.00 & 2 & 133.67 & 1.44 & 1.70\\
+6   & 91.57 & 1 & 106.44 & 1.47 & 1.46\\
+7   & 91.49 & 1 & 104.89 & 1.49 & 1.44\\
+8   & 91.09 & 2 & 101.33 & 1.53 & 1.45\\
+10  & 90.52 & 1 & 101.78 & 1.60 & 1.53\\
+12  & 90.00 & 0 & 101.67 & 1.65 & 1.62\\
+14  & 89.29 & 4 & 103.00 & 1.70 & 1.75\\
+16  & 89.42 & 5 & 101.33 & 1.74 & 1.76\\
+20  & 88.61 & 3 & 100.89 & 1.82 & 1.94\\
+24  & 88.26 & 2 & 101.33 & 1.89 & 2.08\\
+28  & 87.57 & 2 & 99.22 & 1.96 & 2.24\\
+32  & 87.01 & 1 & 100.00 & 1.99 & 2.36\\
+40  & 86.23 & 4 & 98.78 & 2.09 & 2.64\\
+50  & 84.93 & 1 & 98.78 & 2.17 & 2.88\\
+64  & 84.17 & 2 & 101.22 & 2.28 & 3.19\\
+128 & 81.34 & 3 & 107.44 & 2.57 & 4.16\\
+1024 & 73.11 & 23 & 222.01 & 2.83 & 7.55
 	\end{tabular}
-
 	\label{tab:no-best-awr}
 \end{table}
 
 \begin{table}
-	\caption{Relative performance gain, showing the ratio in activations between the best AWR setting for a given problem and another base setting. We compare the base settings of 1:1 (Vampire's default), 1:5 (the best-behaved from \sandm), and the worst setting for the problem.}
+	\caption{
+Relative performance gain, showing the ratio in activations between the best AWR setting for a given problem and another base setting.
+We compare the base settings of 1:1 (Vampire's default), 1:5 (the best-behaved from \sandm), and the worst setting for the problem.
+Where the problem is not solved at all by the base setting, it is ignored.
+}
 	\centering
 	\begin{tabular}{c | c | c c}
 		& Maximum Gain & Mean Gain & (Standard Deviation)\\
@@ -400,8 +403,8 @@ Results for the tested configurations.
 		decay & 5000 & 12982 & 16 & 2 & 707.1\\
 		decay & 10000 & 13002 & 7 & 0 & 706.3\\
 		\hline
-		converge & (combined) & 13167 & 117 & -- & --\\
-		decay & (combined) & 13106 & 93 & -- & --\\
+		converge & (combined) & 13167 & 117 & 41 & --\\
+		decay & (combined) & 13106 & 93 & 17 & --\\
 	\end{tabular}
 	\label{tab:results}
 \end{table}
