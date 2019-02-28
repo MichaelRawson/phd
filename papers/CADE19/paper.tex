@@ -40,9 +40,9 @@ We restrict our attention to clause selection strategies that alternate between 
 It was confirmed by \sandm{} that alternating these two heuristics outperforms either by itself.
 We refer to the ratio with which we use either heuristic as the \emph{age/weight ratio} (AWR) as this is the terminology employed by the Vampire theorem prover, which we use as a vehicle for our study.
 
-After covering relevant background material in Section~\ref{sec:background} the remainder of the paper makes two main the contributions.
-Firstly, in Section~\ref{sec:awr:study} we experimentally confirm the folklore that (i) the choice of age/weight ratio often has a significant effect on the performance of proof search, and (ii) there is no `best' age/weight ratio, indeed, there exist a large range of pragmatically useful ratios.
-Secondly, we demonstrate (Section~\ref{sec:varying:study}) that varying the age-weight ratio over time can achieve better performance than a fixed ratio and use this to motivate the addition of so-called \emph{age/weight shapes} for varying the ratio over time. 
+After covering relevant background material in Section~\ref{sec:background} the remainder of the paper makes two main contributions.
+Firstly, in Section~\ref{sec:awr:study} we experimentally confirm the folklore that (i) the choice of age/weight ratio often has a significant effect on the performance of proof search, and (ii) there is no `best' age/weight ratio: indeed, a large range of pragmatically useful ratios exists.
+Secondly, we demonstrate (Section~\ref{sec:varying:study}) that varying the age-weight ratio over time can achieve better performance than a fixed ratio and use this to motivate the addition of so-called \emph{age/weight shapes} for varying the ratio over time.
 Experiments (Section~\ref{sec:experiments}) with these new options implemented in the Vampire theorem prover show a significant improvement, proving many new problems unsolvable by any current configuration of Vampire as well as other competitive solvers.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -414,10 +414,11 @@ Vampire baseline (and several configurations) were able to solve \texttt{GEO120+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusions and Future Work}
 \label{sec:conclusions}
+Age/weight ratios have a significant effect on the performance of proof search in the Vampire theorem prover, but there is no clear optimal age/weight ratio.
+Further, we have demonstrated that varying the age/weight ratio over time \emph{during} proof search can improve further on an optimal, but fixed age/weight ratio in terms of the number of activations.
+Experiments within Vampire on the TPTP benchmark suggest that these \emph{age/weight shapes} show promise for future developments in this novel approach to proof search.
 
-\todo[inline]{this is a thing, you can do it, you should do it (?), we can probably do better}
-\todo[inline]{more shapes, better ways of doing frequency decay, integrate into existing strategy schedules}
-
+Future directions for research in this area include trying a greater number of ``shapes'' (such as repeating patterns), other approaches for parameterising these shapes, a pseudo-random approach to age/weight instead of the balancing algorithm, and integration of the new approaches into existing strategy schedules.
 \bibliographystyle{plain}
 \bibliography{references}
 \end{document}
