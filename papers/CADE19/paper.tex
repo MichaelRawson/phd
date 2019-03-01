@@ -188,9 +188,11 @@ We set out to experimentally confirm two assumptions from folklore:
 	\item The choice of age/weight ratio often has a significant effect on the performance of proof search.
 	\item There is in general no single best age/weight ratio for a given set of problems.
 \end{enumerate}
-These were supported by the work of \sandm{} but here we focus on these points and explore them more deeply.
+These were supported by the work of \sandm{} but here we focus on these points and explore them more deeply. 
 
 \subsection{Logarithmic AWR}
+
+
 Optimising AWR values is more easily achieved if they have a continuous scale.
 AWR values are mathematically \(\mathbb{Q}^{+}\), the positive rational numbers, but in practice are more easily seen logarithmically: 1:16 is the same distance in terms of the effect on proof search from 1:8 as it is from 1:32.
 Therefore, we introduce the \emph{logarithmic} AWR \(L\), defined in terms of age \(A\) and weight \(W\) as
@@ -199,7 +201,7 @@ Therefore, we introduce the \emph{logarithmic} AWR \(L\), defined in terms of ag
 \]
 With this definition, AWR can now be seen continuously.
 As \(L\) tends to positive infinity, Vampire selects only by weight, whereas if \(L\) tends to negative infinity Vampire selects only by age.
-\(L = 0\) represents the middle ground of a 1:1 age/weight ratio.
+\(L = 0\) represents the middle ground of a 1:1 age/weight ratio. Note that we have not updated the balancing algorithm used by Vampire to make use of this value (this still requires two numbers) but use the number in experiments when discussing AWR.
 
 \begin{figure}[t]
 	\centering
@@ -220,9 +222,9 @@ It also avoids reproducibility issues involved with using system timing approach
 On this problem, a good AWR value is over 400\% better by this metric than the worst AWR value.
 
 
-This experiment was repeated on the whole TPTP problem set, excluding problems Vampire does not support, problems which were not solved by the default mode in under a second for any AWR value, and problems solved in pre-processing. The whole set yielded similar AWR data for 7,947 problems. 
+This experiment was repeated on the whole TPTP problem set, excluding problems Vampire does not currently support (e.g. higher-order problems). We ran Vampire in default mode with the \texttt{discount} saturation algorithm\footnote{The default LRS~\cite{LRS} saturation algorithm can be non-deterministic so we avoid it for such experiments.} using a sensible set of AWR values (see Table \ref{tab:awr-improvement}) - these are the values used in Vampire's portfolio mode. These tend to favour weight-first over age-first as this has been experimentally shown to be preferable. We then filter out problems not solved by any of these or those solved trivially (e.g in preprocessing). The whole set yielded similar AWR data for 7,947 problems. 
 %
-We selected a sensible set of AWR values (see Table \ref{tab:awr-improvement}) - these are the values used in Vampire's portfolio mode. These tend to favour weight-first over age-first as this has been experimentally shown to be preferable.
+We selected 
 
 The results of these experiments are presented in Tables \ref{tab:no-best-awr} and \ref{tab:awr-improvement}. 
 %
