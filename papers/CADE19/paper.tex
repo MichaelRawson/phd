@@ -330,25 +330,31 @@ We perform two experiments to evaluate the new techniques. The first compares th
 \caption{Number of problems solved (top) and unique problems solved (bottom) by various configurations varying AWR, AWR shape, and AWR frequency.\label{tab:short:runs}}
 \centering
 \begin{tabular}{l|l|lllll|lllll}
-&&  \multicolumn{5}{|c}{converge} &  \multicolumn{5}{|c}{decay} \\  
-AWR & constant & \multicolumn{5}{|c|}{Frequency}  & \multicolumn{5}{|c}{Frequency} \\  
-&& 1 & 10 & 100 & 1000 & Union & 1 & 10 & 100 & 1000 &Union  \\ \hline
+	& & \multicolumn{5}{|c}{converge} & \multicolumn{5}{|c}{decay}\\  
+AWR & constant & \multicolumn{5}{|c|}{Frequency} & \multicolumn{5}{|c}{Frequency}\\  
+&& 1 & 10 & 100 & 1000 & Union & 1 & 10 & 100 & 1000 & Union\\
+\hline
 \multicolumn{10}{c}{Problems Solved} \\ \hline
-10:1		&5911 & 5908&5910 & 5969 &6135 &  & 5908 &5910  & 5969  &6135  \\
-1:10		&6417& 6412&6421 &6389 & 6325  \\
-1:100	&6026& 6028& 6010& 5971& 6148\\
-1:1000	&5387&5395  &5408 &5510 &6019  \\ \hline
-Union & \\ \hline \hline
+10:1		& 7967 & 7972 & 7976 & 8050 & 8245 & 8372\\
+1:10		& 8575 & 8565 & 8578 & 8550 & 8489 & 8778\\
+1:100	        & 8079 & 8084 & 8079 & 8039 & 8279 & 8560\\
+1:1000     	& 7276 & 7279 & 7297 & 7418 & 8133 & 8379\\
+\hline
+Union           & 9019 & 9028 & 9016 & 8981 & 8871 & 9194\\
+\hline
+\hline
 \multicolumn{10}{c}{Uniquely Solved} \\ \hline
-10:1		&1 & 4&2 & 5 &10 & 4&2 & 5&10 \\
-1:10		& \\
-1:100	& \\
-1:1000	&\\ \hline
-Union & \\ 
+10:1		& 2 & 4 & 2 & 6 & 15 & 27\\
+1:10		& 2 & 5 & 3 & 2 & 12 & 22\\
+1:100	        & 1 & 2 & 2 & 9 & 13 & 26\\
+1:1000	        & 1 & 2 & 0 & 0 & 5 & 7\\
+\hline
+Union           & 6 & 13 & 7 & 17 & 45 & --\\ 
 \end{tabular}
 \end{table}
 
 We ran Vampire in default mode (with {\tt discount} saturation algorithm) for 10s whilst varying  \texttt{age\_weight\_ratio} and \texttt{age\_weight\_ratio\_shape\_frequency} for both new values of \texttt{age\_weight\_ratio\_shape}. We also ran the constant default AWR of 1:1 as a baseline. 
+Experimental results for \emph{decay} were not complete at the time of submission but the trend is similar, e.g. some values performed better than others with a spread of unique results. These results will be added in a final version.
 
 The results are given in Table~\ref{tab:short:runs}. The results for the different shapes are grouped into columns and then by frequency with rows giving results per AWR value. We separately report the total number of problems solved and those solved uniquely (by a single strategy across all experiments).
 
