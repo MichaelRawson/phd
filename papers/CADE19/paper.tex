@@ -404,17 +404,18 @@ Our next experiment aims to answer the question ``how much can the portfolio mod
 Vampire first ran to establish baseline performance in the given portfolio mode on all problems in TPTP, with a wallclock time limit of 300 seconds. We then forced the new options on top of the portfolio mode, using the existing AWR values in the various strategies as the starting point. The purpose is to gauge what impact adding such options to a new portfolio mode could have. In this experiment we are mainly hoping to find new solved problems and identify new strategies that could be added to a portfolio mode. Therefore, it makes sense to consider the union of all experiments ran.
 %For experimental purposes, the same environment was preserved with the exception of activating the new ``shapes'' settings with a range of different shape frequencies.
 
-Overall, the baseline solved the most problems (13,057)
+Overall, the baseline solved the most problems (13,057). 
 No experimental configuration improved on this figure, but some problems not solved by baseline were solved by the new configurations, and some entirely new problems were solved.
 The union of all \emph{converge} and \emph{decay} configurations improved on the baseline, with 13,167 and 13,106 solved problems respectively.
 
 Figure \ref{tab:results} shows the performance in terms of solved problems of all the configurations tested.
 These data show that configurations which are more similar to the baseline (i.e. slow decay or fast convergence) achieve more similar performance, as expected.
-In total, 134 problems were solved by the new configurations that were not solved by the baseline.
+In total, 134 problems were solved by the new configurations that were not solved by the baseline. This is an impressive result - it is rare to be able to improve portfolio mode by this many new problems with a single new proof search option.  
 
+We also report the \emph{u-score} computed by giving $1/n$ points per problem solved where $n$ is the number of strategies solving a problem. This gives a measure of contribution per strategy. To consider new options for extending the portfolio mode we will consider options from largest u-score to smallest (and only those with unique solutions overall).
 
 %\subsection{New Problems}
-Two problems were solved which were marked with an ``Unknown'' status in the TPTP headers.
+Finally, two problems were solved which were marked with an ``Unknown'' status in the TPTP headers.
 Only converging with frequency 50 solved \texttt{SET345-6} and only decaying with frequency 1 solved \texttt{LAT320+3}.
 
 %\clearpage
