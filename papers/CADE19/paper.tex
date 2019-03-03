@@ -356,10 +356,12 @@ Union           & \emph{4} & \emph{10} & \emph{6} & \emph{11} & \emph{25} & \emp
 We ran Vampire in default mode (with {\tt discount} saturation algorithm) for 10s whilst varying  \texttt{age\_weight\_ratio} and \texttt{age\_weight\_ratio\_shape\_frequency} for both new values of \texttt{age\_weight\_ratio\_shape}. We also ran the constant default AWR of 1:1 as a baseline. 
 
 The results are given in Table~\ref{tab:short:runs}. The results for the different shapes are grouped into columns and then by frequency with rows giving results per AWR value.
-We separately report the total number of problems solved and those solved uniquely (by a single strategy across all experiments).
+We separately report the total number of problems solved and those solved uniquely (by a single strategy across all experiments, including the baseline).
 
+In all cases varying the AWR over time outperformed keeping it constant. As the new strategies always include some reasoning using \verb|1:1| AWR this suggests that all benefit from \emph{some} fair reasoning during proof search and some biased reasoning. 
 The best combination of options overall was decaying from an initial age/weight of 1:100 with frequency 1000.
-However, in general strategies that converged performed better than those that decayed, both in terms of total problems solved and in terms of unique solutions.
+However, in general, strategies that converged performed better than those that decayed, both in terms of total problems solved and in terms of unique solutions. 
+Longer frequencies tended to do better, suggesting that more time at the intermediate AWR values is preferable. 
 In total, 28 out of a total of 36 strategies contributed some unique solutions. This shows that these new options are complementary in general.
 
 %%%%%%%%%%%%%%%%%%%%%%
@@ -405,7 +407,7 @@ Results for the tested configurations.
 
 Our next experiment aims to answer the question ``How much can the portfolio mode of Vampire improve using these new options?''.
 To address this we use the portfolio mode used in the most recent CASC competition~\cite{CADE18} as a baseline and run the new options on top of this.
-Note that this portfolio mode contains techniques completely unrelated to the age/weight ratio e.g. finite model building~\cite{fmb}. 
+Note that this portfolio mode contains techniques completely unrelated to the age/weight ratio, e.g. finite model building~\cite{fmb}, as well as other options related to clause selection, e.g. non-goal weight coefficient and set-of-support.
 
 Vampire first ran to establish baseline performance in the given portfolio mode on all problems in TPTP, with a wallclock time limit of 300 seconds. We then forced the new options on top of the portfolio mode, using the existing AWR values in the various strategies as the starting point. The purpose is to gauge what impact adding such options to a new portfolio mode could have. In this experiment we are mainly hoping to find new solved problems and identify new strategies that could be added to a portfolio mode. Therefore, it makes sense to consider the union of all experiments ran.
 
