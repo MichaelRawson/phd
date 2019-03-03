@@ -330,26 +330,26 @@ We perform two experiments to evaluate the new techniques. The first compares th
 \caption{Number of problems solved (top) and unique problems solved (bottom) by various configurations varying AWR, AWR shape, and AWR frequency.\label{tab:short:runs}}
 \centering
 \begin{tabular}{l|l|lllll|lllll}
-	& & \multicolumn{5}{|c}{converge} & \multicolumn{5}{|c}{decay}\\  
-AWR & constant & \multicolumn{5}{|c|}{Frequency} & \multicolumn{5}{|c}{Frequency}\\  
+	& & \multicolumn{5}{|c}{\texttt{converge}} & \multicolumn{5}{|c}{\texttt{decay}}\\  
+AWR & \texttt{constant} & \multicolumn{5}{|c|}{Frequency} & \multicolumn{5}{|c}{Frequency}\\  
 && 1 & 10 & 100 & 1000 & Union & 1 & 10 & 100 & 1000 & Union\\
 \hline
 \multicolumn{10}{c}{Problems Solved} \\ \hline
-10:1		& 7967 & 7972 & 7976 & 8050 & 8245 & 8372\\
-1:10		& 8575 & 8565 & 8578 & 8550 & 8489 & 8778\\
-1:100	        & 8079 & 8084 & 8079 & 8039 & 8279 & 8560\\
-1:1000     	& 7276 & 7279 & 7297 & 7418 & 8133 & 8379\\
+10:1		& 7967 & 7972 & 7976 & 8050 & 8245 & \emph{8372}\\
+1:10		& 8575 & 8565 & \textbf{8578} & 8550 & 8489 & \emph{8778}\\
+1:100	        & 8079 & 8084 & 8079 & 8039 & 8279 & \emph{8560}\\
+1:1000     	& 7276 & 7279 & 7297 & 7418 & 8133 & \emph{8379}\\
 \hline
-Union           & 9019 & 9028 & 9016 & 8981 & 8871 & 9194\\
+Union           & \emph{9019} & \emph{9028} & \emph{9016} & \emph{8981} & \emph{8871} & \emph{9194}\\
 \hline
 \hline
 \multicolumn{10}{c}{Uniquely Solved} \\ \hline
-10:1		& 2 & 4 & 2 & 6 & 15 & 27\\
-1:10		& 2 & 5 & 3 & 2 & 12 & 22\\
-1:100	        & 1 & 2 & 2 & 9 & 13 & 26\\
-1:1000	        & 1 & 2 & 0 & 0 & 5 & 7\\
+10:1		& 2 & 4 & 2 & 6 & \textbf{15} & \emph{27}\\
+1:10		& 2 & 5 & 3 & 2 & 12 & \emph{22}\\
+1:100	        & 1 & 2 & 2 & 9 & 13 & \emph{26}\\
+1:1000	        & 1 & 2 & 0 & 0 & 5 & \emph{7}\\
 \hline
-Union           & 6 & 13 & 7 & 17 & 45 & --\\ 
+Union           & \emph{6} & \emph{13} & \emph{7} & \emph{17} & \emph{45} & --\\ 
 \end{tabular}
 \end{table}
 
