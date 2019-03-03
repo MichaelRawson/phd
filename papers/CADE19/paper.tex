@@ -126,7 +126,7 @@ Figure~\ref{fig:discount} gives the Discount algorithm along with balance-based 
 %%%%%%
 \paragraph{Portfolio Solvers.}
 
-Vampire is a portfolio solver and is typically run in a mode that attempts multiple different \emph{strategies} in quick succession, e.g. in a 30 second run it may attempt 10 or more different strategies, and may run these in parallel with different priorities~\cite{DBLP:conf/cade/RawsonR18}. These strategies employ many different options including different saturation algorithms (including Otter and Discount), preprocessing options, literal selection strategies, inference rules, and clause selection heuristics. The portfolio mode is a significant improvement on any single strategy. 
+Vampire is a portfolio solver and is typically run in a mode that attempts multiple different \emph{strategies} in quick succession, e.g. in a 30 second run it may attempt 10 or more different strategies, and may run these in parallel with different priorities~\cite{dynamic-strategy-priority}. These strategies employ many different options including different saturation algorithms (including Otter and Discount), preprocessing options, literal selection strategies, inference rules, and clause selection heuristics. The portfolio mode is a significant improvement on any single strategy. 
 
 We note here that Vampire's portfolio mode includes an additional option relevant to clause selection: the \texttt{--nongoal\_weight\_coefficient} option specifies a multiplier to apply to the weight of nongoal clauses, thus preferring clauses in or derived from the goal in clause selection. Use of this heuristic is orthogonal to the age/weight ratio and we do not investigate its impact any further here.
 
@@ -136,7 +136,7 @@ We briefly review the clause selection approaches taken by other solvers.
 Otter 3.3~\cite{otter3} selects \emph{either} by age, by weight or manually.
 Prover9~\cite{prover9} allows a configurable age/weight ratio.
 E~\cite{E} allows the user to specify an arbitrary number of priority queues and a weighted round-robin scheme that determines how many clauses are picked from each queue.
-The default is to use a combination of age and weight selection, although there is also a complex strategy developed by a genetic algorithm~\cite{DBLP:conf/gcai/SchaferS15}. 
+The default is to use a combination of age and weight selection, although there is also a complex strategy developed by a genetic algorithm~\cite{genetic-heuristics}. 
 SPASS~\cite{Spass} uses symbol-counting based clause selection. 
 iProver~\cite{Iprover} follows in E in having a number of configurable queues but relies mainly on age and weight heuristics in those queues. 
 The general idea in this paper of a \emph{varying age/weight ratio over time} is applicable to any ratio-based clause selection strategy, and our specific results apply to those that take a ratio between age and weight.
@@ -199,7 +199,7 @@ Where the problem is not solved at all by the base setting, it is ignored.
 	\label{tab:awr-improvement}
 \end{table}
 
-This experiment was repeated on the whole TPTP problem set, excluding problems Vampire does not currently support (e.g. higher-order problems). We ran Vampire for 1 second in default mode with the \texttt{discount} saturation algorithm\footnote{The default LRS~\cite{LRS} saturation algorithm can be non-deterministic so we avoid it for such experiments.} using a sensible set of AWR values (see Table \ref{tab:awr-improvement}) - these are the values used in Vampire's portfolio mode. These tend to favour weight-first over age-first as this has been experimentally shown to be preferable. We then filter out problems not solved by any of these or those solved trivially (e.g in preprocessing). The whole set yielded similar AWR data for 7,947 problems. 
+This experiment was repeated on the whole TPTP problem set, excluding problems Vampire does not currently support (e.g. higher-order problems). We ran Vampire for 1 second in default mode with the \texttt{discount} saturation algorithm\footnote{The default LRS~\cite{LRS} saturation algorithm can be non-deterministic so we avoid it for such experiments.} using a sensible set of AWR values (see Table \ref{tab:no-best-awr}) --- these are the values used in Vampire's portfolio mode. These tend to favour weight-first over age-first as this has been experimentally shown to be preferable. We then filter out problems not solved by any of these or those solved trivially (e.g in preprocessing). The whole set yielded similar AWR data for 7,947 problems. 
 
 The first result is that choosing a good AWR value for a problem is well-rewarded.
 Table~\ref{tab:awr-improvement} summarises the impact that choosing the best AWR can have.
@@ -335,37 +335,35 @@ AWR & \texttt{constant} & \multicolumn{5}{|c|}{Frequency} & \multicolumn{5}{|c}{
 && 1 & 10 & 100 & 1000 & Union & 1 & 10 & 100 & 1000 & Union\\
 \hline
 \multicolumn{10}{c}{Problems Solved} \\ \hline
-10:1		& 7967 & 7972 & 7976 & 8050 & 8245 & \emph{8372}\\
-1:10		& 8575 & 8565 & \textbf{8578} & 8550 & 8489 & \emph{8778}\\
-1:100	        & 8079 & 8084 & 8079 & 8039 & 8279 & \emph{8560}\\
-1:1000     	& 7276 & 7279 & 7297 & 7418 & 8133 & \emph{8379}\\
+10:1		& 7967 & 7972 & 7976 & 8050 & 8245 & \emph{8372} & 8448 & 8441 & 8380 & 8169 & \emph{8614}\\
+1:10		& 8575 & 8565 & \textbf{8578} & 8550 & 8489 & \emph{8778} & 8458 & 8456 & 8484 & 8268 & \emph{8787}\\
+1:100	        & 8079 & 8084 & 8079 & 8039 & 8279 & \emph{8560} & 8454 & 8484 & 8537 & \textbf{8636} & \emph{8907}\\
+1:1000     	& 7276 & 7279 & 7297 & 7418 & 8133 & \emph{8379} & 8470 & 8492 & 8492 & 8473 & \emph{8873}\\
 \hline
-Union           & \emph{9019} & \emph{9028} & \emph{9016} & \emph{8981} & \emph{8871} & \emph{9194}\\
+Union           & \emph{9019} & \emph{9028} & \emph{9016} & \emph{8981} & \emph{8871} & \emph{9194} & \emph{8572} & \emph{8674} & \emph{8725} & \emph{8978} & \emph{9048}\\
 \hline
 \hline
 \multicolumn{10}{c}{Uniquely Solved} \\ \hline
-10:1		& 2 & 4 & 2 & 6 & \textbf{15} & \emph{27}\\
-1:10		& 2 & 5 & 3 & 2 & 12 & \emph{22}\\
-1:100	        & 1 & 2 & 2 & 9 & 13 & \emph{26}\\
-1:1000	        & 1 & 2 & 0 & 0 & 5 & \emph{7}\\
+10:1		& 1 & 3 & 2 & 3 & 8 & \emph{16} & 0 & 1 & 2 & 4 & \emph{7}\\
+1:10		& 1 & 3 & 2 & 1 & 5 & \emph{11} & 0 & 1 & 0 & 7 & \emph{8}\\
+1:100	        & 1 & 2 & 2 & 7 & \textbf{9} & \emph{20} & 2 & 0 & 3 & 9 & \emph{14}\\
+1:1000	        & 1 & 2 & 0 & 0 & 3 & \emph{5} & 2 & 0 & 0 & \textbf{12} & \emph{14}\\
 \hline
-Union           & \emph{6} & \emph{13} & \emph{7} & \emph{17} & \emph{45} & --\\ 
+Union           & \emph{4} & \emph{10} & \emph{6} & \emph{11} & \emph{25} & \emph{52} & \emph{4} & \emph{2} & \emph{5} & \emph{32} & \emph{43}\\ 
 \end{tabular}
 \end{table}
 
 We ran Vampire in default mode (with {\tt discount} saturation algorithm) for 10s whilst varying  \texttt{age\_weight\_ratio} and \texttt{age\_weight\_ratio\_shape\_frequency} for both new values of \texttt{age\_weight\_ratio\_shape}. We also ran the constant default AWR of 1:1 as a baseline. 
-Experimental results for \emph{decay} were not complete at the time of submission but the trend is similar, e.g. some values performed better than others with a spread of unique results. These results will be added in a final version.
 
-The results are given in Table~\ref{tab:short:runs}. The results for the different shapes are grouped into columns and then by frequency with rows giving results per AWR value. We separately report the total number of problems solved and those solved uniquely (by a single strategy across all experiments).
+The results are given in Table~\ref{tab:short:runs}. The results for the different shapes are grouped into columns and then by frequency with rows giving results per AWR value.
+We separately report the total number of problems solved and those solved uniquely (by a single strategy across all experiments).
 
-The best combination of options overall was X. In general, strategies that converged performed better/worse than those that diverged.
-
-In total X out of all Y strategies contributed some unique solutions. This shows that these new options are complementary in general.
-
+The best combination of options overall was decaying from an initial age/weight of 1:100 with frequency 1000.
+However, in general strategies that converged performed better than those that decayed, both in terms of total problems solved and in terms of unique solutions.
+In total, 28 out of a total of 36 strategies contributed some unique solutions. This shows that these new options are complementary in general.
 
 %%%%%%%%%%%%%%%%%%%%%%
 \subsection{Contribution to Portfolio}
-
 
 \begin{table}[t]
 	\caption{
@@ -405,10 +403,11 @@ Results for the tested configurations.
 	\label{tab:results}
 \end{table}
 
-Our next experiment aims to answer the question ``how much can the portfolio mode of Vampire improve using these new options''. To address this question we use the portfolio mode used in the most recent CASC competition~\cite{CADE18} as a baseline and run the new options on top of this. Note that this portfolio mode contains techniques completely unrelated to the age/weight ratio e.g. finite model building~\cite{DBLP:conf/sat/Reger0V16}. 
+Our next experiment aims to answer the question ``How much can the portfolio mode of Vampire improve using these new options?''.
+To address this we use the portfolio mode used in the most recent CASC competition~\cite{CADE18} as a baseline and run the new options on top of this.
+Note that this portfolio mode contains techniques completely unrelated to the age/weight ratio e.g. finite model building~\cite{fmb}. 
 
 Vampire first ran to establish baseline performance in the given portfolio mode on all problems in TPTP, with a wallclock time limit of 300 seconds. We then forced the new options on top of the portfolio mode, using the existing AWR values in the various strategies as the starting point. The purpose is to gauge what impact adding such options to a new portfolio mode could have. In this experiment we are mainly hoping to find new solved problems and identify new strategies that could be added to a portfolio mode. Therefore, it makes sense to consider the union of all experiments ran.
-%For experimental purposes, the same environment was preserved with the exception of activating the new ``shapes'' settings with a range of different shape frequencies.
 
 Overall, the baseline solved the most problems (13,057). 
 No experimental configuration improved on this figure, but some problems not solved by baseline were solved by the new configurations, and some entirely new problems were solved.
@@ -416,9 +415,10 @@ The union of all \emph{converge} and \emph{decay} configurations improved on the
 
 Figure \ref{tab:results} shows the performance in terms of solved problems of all the configurations tested.
 These data show that configurations which are more similar to the baseline (i.e. slow decay or fast convergence) achieve more similar performance, as expected.
-In total, 134 problems were solved by the new configurations that were not solved by the baseline. This is an impressive result - it is rare to be able to improve portfolio mode by this many new problems with a single new proof search option.  
+In total, 134 problems were solved by the new configurations that were not solved by the baseline. This is an impressive result --- it is rare to be able to improve portfolio mode by this many new problems with a single new proof search option.  
 
-We also report the \emph{u-score} computed by giving $1/n$ points per problem solved where $n$ is the number of strategies solving a problem. This gives a measure of contribution per strategy. To consider new options for extending the portfolio mode we will consider options from largest u-score to smallest (and only those with unique solutions overall).
+We also report the \emph{u-score} computed by giving $1/n$ points per problem solved where $n$ is the number of strategies solving a problem~\cite{u-score}.
+This gives a measure of contribution per strategy. To consider new options for extending the portfolio mode we will consider options from largest u-score to smallest (and only those with unique solutions overall).
 
 Finally, two problems were solved which were marked with an ``Unknown'' status in the TPTP headers.
 Only converging with frequency 50 solved \texttt{SET345-6} and only decaying with frequency 1 solved \texttt{LAT320+3}.
