@@ -128,7 +128,7 @@ Figure~\ref{fig:discount} gives the Discount algorithm along with balance-based 
 
 Vampire is a portfolio solver and is typically run in a mode that attempts multiple different \emph{strategies} in quick succession, e.g. in a 30 second run it may attempt 10 or more different strategies, and may run these in parallel with different priorities~\cite{dynamic-strategy-priority}. These strategies employ many different options including different saturation algorithms (including Otter and Discount), preprocessing options, literal selection strategies, inference rules, and clause selection heuristics. The portfolio mode is a significant improvement on any single strategy. 
 
-We note here that Vampire's portfolio mode includes an additional option relevant to clause selection: the \texttt{--nongoal\_weight\_coefficient} option specifies a multiplier to apply to the weight of nongoal clauses, thus preferring clauses in or derived from the goal in clause selection. Use of this heuristic is orthogonal to the age/weight ratio and we do not investigate its impact any further here.
+We note here that Vampire's portfolio mode includes an additional option relevant to clause selection: the \texttt{--nongoal\_weight\_coefficient} option specifies a multiplier to apply to the weight of non-goal clauses, thus preferring clauses in or derived from the goal in clause selection. Use of this heuristic is orthogonal to the age/weight ratio and we do not investigate its impact any further here.
 
 %%%%%%
 \paragraph{Related Work.}
@@ -208,7 +208,7 @@ It is more relevant to note that there are cases where we can do \emph{much} bet
 So choosing a better AWR value \emph{can} go from no solution to a solution and \emph{can} do so faster, but not necessarily.
 In the worst case (choosing the pessimal AWR value) we can perform almost 4 times as many activations.
 
-The second result is that there is no ``best'' AWR across this full set of problems. Table \ref{tab:no-best-awr} shows, for each AWR value, the \% of problems solved, the number solved uniquely, the maximum and mean drop in performance. The drop in performance is the how many times more activations were required for a proof in the worst/average case compared to the best. No AWR value solves all problems, with the best being 1:5. 
+The second result is that there is no ``best'' AWR across this full set of problems. Table \ref{tab:no-best-awr} shows, for each AWR value, the \% of problems solved, the number solved uniquely, the maximum and mean drop in performance. The drop in performance is how many times more activations were required for a proof in the worst/average case compared to the best. No AWR value solves all problems, with the best being 1:5. 
 A ratio of 1:4 produces an unusually well-behaved maximum performance drop.
 \sandm~found that 1:5 had a similar property, but this might be explained by differences in prover and test environment. It is interesting to note that the extreme AWR values solve fewer problems overall but solve the most uniquely. This is typical in saturation-based proof search: approaches that do not perform well in general may perform well in specific cases where the general approach does not.
 
@@ -313,7 +313,7 @@ This would permit use of continuous age/weight functions, but would also introdu
 	\label{fig:decay-and-converge}
 \end{figure}
 
-We introduce two new options: \texttt{--age\_weight\_ratio\_shape} can take the values \emph{constant}, \emph{decay}, or \emph{converge} and selects one of the above shapes; and \texttt{--age\_weight\_ratio\_shape\_frequency} specifies the frequency (rate) or convergance/decay (default is 100). These are used with the existing \texttt{--age\_weight\_ratio} option (default 1:1) to give a number of new option combinations, which can be used in conjunction with Vampire's portfolio mode pending integration into the strategy schedules.
+We introduce two new options: \texttt{--age\_weight\_ratio\_shape} can take the values \emph{constant}, \emph{decay}, or \emph{converge} and selects one of the above shapes; and \texttt{--age\_weight\_ratio\_shape\_frequency} specifies the frequency (rate) or convergence/decay (default is 100). These are used with the existing \texttt{--age\_weight\_ratio} option (default 1:1) to give a number of new option combinations, which can be used in conjunction with Vampire's portfolio mode pending integration into the strategy schedules.
 This version of the prover is currently in a separate branch in the main Vampire source repository\footnote{\texttt{https://github.com/vprover/vampire/tree/awr-shapes}}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
