@@ -358,7 +358,7 @@ We ran Vampire in default mode (with {\tt discount} saturation algorithm) for 10
 The results are given in Table~\ref{tab:short:runs}. The results for the different shapes are grouped into columns and then by frequency with rows giving results per AWR value.
 We separately report the total number of problems solved and those solved uniquely (by a single strategy across all experiments, including the baseline).
 
-In all cases varying the AWR over time outperformed keeping it constant. As the new strategies always include some reasoning using \verb|1:1| AWR this suggests that all benefit from \emph{some} fair reasoning during proof search and some biased reasoning. 
+In all cases, for a given start AWR value, varying the AWR over time outperformed keeping it constant. As the new strategies always include some reasoning using \verb|1:1| AWR this suggests that all benefit from \emph{some} fair reasoning during proof search and some biased reasoning. 
 The best combination of options overall was decaying from an initial age/weight of 1:100 with frequency 1000.
 However, in general, strategies that converged performed better than those that decayed, both in terms of total problems solved and in terms of unique solutions. 
 Longer frequencies tended to do better, suggesting that more time at the intermediate AWR values is preferable. 
@@ -433,15 +433,15 @@ Only converging with frequency 50 solved \texttt{SET345-6} and only decaying wit
 \centering
 \begin{tabular}{l|l|l}
 Solver 		& Total solved & Uniquely solved \\ \hline
-Vampire (old)	& 13,057 & \\
-Vampire (new)   & 13,191 & \\
-E 			&10,845\\
-iProver		& 8,143\\
-CVC4		& 9,354\\
+Vampire (old)	& 13,057 & -\\
+Vampire (new)   & 13,191 & 54\\
+E 			&10,845 & 190\\
+iProver		& 8,143 & 215\\
+CVC4		& 9,354 & 501\\
 \end{tabular}
 \end{table}
 
-To place these results in context, we compare the overall number of problems solved by our new strategies with the results of other solvers (using their 2018 CASC competition strategy). These results are from 300s and are given in Table~\ref{tab:other}. In this table Vampire (old) stands for the 2018 competition version whilst Vampire (new) stands for the union of all problems solved by new options in the previous section. The main point we want to make here is that the unique problems found in the previous section remain unique when compared to other competitive solvers.
+To place these results in context, we compare the overall number of problems solved by our new strategies with the results of other solvers (using their 2018 CASC competition strategy). These results are from 300s and are given in Table~\ref{tab:other}. In this table Vampire (old) stands for the 2018 competition version whilst Vampire (new) stands for the union of all problems solved by new options in the previous section. Between them, the two versions of Vampire solve 1,030 problems uniquely. The main point we want to make here is that 54 of the unique problems found in the previous section remain unique when compared to other competitive solvers.
 
 %%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusions and Future Work}
