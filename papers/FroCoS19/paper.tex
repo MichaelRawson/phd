@@ -1,5 +1,6 @@
 \documentclass[runningheads]{llncs}
 \newcommand{\lerna}{\textsc{Lerna}}
+\newcommand{\z}[1]{\textsc{Z3}}
 \begin{document}
 \title{A Neural, Parallel Theorem Prover*}
 \author{
@@ -85,8 +86,8 @@ All results collected on commodity hardware (TODO talk about specs).
 
 \subsection{Benchmark Results}
 
-Table \ref{table:m2k-results} shows the total number of theorems proved using various configurations of Z3 and LeRNA on the M2k dataset.
-Z3 ran for a full 10 seconds to establish baseline performance, then as an oracle for 20 milliseconds to determine the number of ``trivial'' problems.
+Table \ref{table:m2k-results} shows the total number of theorems proved using various configurations of \z3 and LeRNA on the M2k dataset.
+\z3 ran for a full 10 seconds to establish baseline performance, then as an oracle for 20 milliseconds to determine the number of ``trivial'' problems.
 LeRNA ran on an identical dataset, first without guidance from the neural heuristic, then with guidance.
 
 \begin{table}
@@ -95,8 +96,8 @@ LeRNA ran on an identical dataset, first without guidance from the neural heuris
 	\begin{tabular}{r | c}
 		\textbf{Configuration} & \textbf{Theorems Proved}\\
 		\hline
-		Z3 (10s, as baseline) & 1216\\
-		Z3 (20ms, as oracle) & 711\\
+		\z3 (10s, as baseline) & 1216\\
+		\z3 (20ms, as oracle) & 711\\
 		LeRNA, unguided (10s, with oracle) & 969\\
 		LeRNA, guided (10s, with oracle) & 1012\\
 						      & FIXME there is a bug, these ought be better\\
@@ -106,7 +107,51 @@ LeRNA ran on an identical dataset, first without guidance from the neural heuris
 
 \section{Conclusion}
 \section{Future Work}
+The style of theorem prover described opens many new directions for future work and improvements to the system.
+As \lerna{} is a very new system, there is likely much to be gained by simple engineering and tuning: for example, the UCT exploration parameter \(c\) has been left at its theoretical optimum value \(\sqrt{2}\), but it is likely that a higher value will account for neural network inaccuracies and hence improve performance.
+Training on, benchmarking with, and optimising for other datasets (such as the famous TPTP benchmark~\cite{TPTP}) is also left as future work.
 
+\subsection{Proof Search}
+\lerna{} is well-suited for long-term proof search attempts in mathematics, such as those employed in the AIM project~\cite{AIM}: search is stable over time and does not produce a combinatorial explosion in the same way that some traditional systems tend to after a short period.
+Additionally, the amount of information (``confidence'') in the system grows over time, as a result of a growing number of oracle invocations and neural network evaluations.
+Proof search can in principle be manually inspected more easily than in saturation-based provers to examine promising subgoals and remove known falsehoods from the search space.
+The authors hope to explore applying the system to this interesting domain.
+
+Another future direction for proof search is a principled incomplete mode, in which branches deemed sufficiently uninteresting by the heuristic are pruned, perhaps in response to time or memory constraints as seen in limited resource strategies~\cite{LRS}.
+This approach, while clearly incomplete, would significantly accelerate proof search in the direction of more promising search within the available resources.
+
+\subsection{Prover Calculus}
+The calculus currently employed is deliberately na\"ive, so much work is planned here.
+In particular, the simplification routines can be improved to remove more trivial sub-formulae.
+While in general the oracles' pre-processing will remove these, they serve as noise for the neural network and might also increase the number of inference steps required to reach a proof.
+
+As one possible view of this approach is as an intelligent pre-processor for an existing efficient ATP, a greater number of aggressive and/or weakening inferences might be included in the calculus.
+It is well-known (TODO find citation) that \emph{prenexing} (or conversely \emph{miniscoping}) formulae can have a significant effect on proof search for some theorem provers, so including suitable quantifier-manipulation rules might prove to be a useful extension.
+
+Generalising further, ideas from other refutation-tableaux calculi could well be suitable for this system.
+In particular, the authors are attempting to integrate an adapted connection rule from the non-clausal connection calculus~\cite{non-clausal-connections}, as used in nanoCoP~\cite{nanocop}, in order to reduce the number of proof steps required to instantiate universal quantifiers.
+
+Finally, this prover architecture can support other logics without excessive modification.
+Given that \z3 is already capable of supporting many \emph{theories}, such as arithmetic or datatypes, a many-sorted first order logic such as those described by SMTLIB~\cite{smtlib} or the TFF0 dialect of TPTP~\cite{tff0} seems an appropriate first step.
+
+\subsection{Oracle}
+While \z3 is a strong theorem prover in its own right and performs well here, it remains to be seen if it is the best for this application.
+Other ATPs (or indeed counter-example-finding systems) should be tested as it involves minimal engineering effort.
+A \emph{portfolio} of several oracle systems working in tandem might also be considered, although of course this will eventually retard proof search linearly in the number of systems present.
+
+Reducing the number of oracle invocations is another area for optimisation.
+Currently, the system calls an oracle for every new subgoal generated.
+It seems unlikely that the subgoal is materially easier to dispatch than its parent (especially in the case of propositional inferences that do not split the goal), so heuristically or probabilistically removing such subgoals from the oracle's queue is a possible area for improvement.
+
+\lerna{} does not currently use any information from the oracle beyond its status: using auxiliary information such as satisfying models or unused formulae could well aid proof search.
+
+\subsection{Machine-Learned Heuristic}
+Many other graph-based neural architectures are possible.
+PyTorch Geometric alone currently includes nearly 40 other graph-specific neural layers pre-programmed from the literature.
+Neural models specifically for theorem proving are relatively under-studied.
+To combat this, data used for this paper will be published in the near future so that the machine-learning community can improve upon our simple models.
+
+Different approaches to formula-to-graph translation, symbol embeddings, data augmentation, and model integration may also be explored.
 \bibliographystyle{splncs04}
 \bibliography{references}
 \end{document}
