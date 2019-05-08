@@ -1,0 +1,112 @@
+\documentclass[runningheads]{llncs}
+\newcommand{\lerna}{\textsc{Lerna}}
+\begin{document}
+\title{A Neural, Parallel Theorem Prover*}
+\author{
+	Michael Rawson*\orcidID{0000-0001-7834-1567} \and
+	Giles Reger
+}
+\institute{University of Manchester, UK}
+\maketitle
+
+\begin{abstract}
+	We present the \lerna{} system, a neurally-guided automatic theorem prover for first-order logic with equality.
+	The system uses a neural network trained on previous proof search attempts to evaluate subgoals based directly on their structure, and hence bias proof search toward success.
+	An existing first-order theorem prover is employed to dispatch easy subgoals and prune branches which cannot be solved.
+	Exploration of the search space is asynchronous with respect to both the evaluation network and the existing prover, allowing for efficient batched neural network execution and for natural parallelism within the prover.
+\keywords{ATP \and Graph Convolutional Network \and Tableaux \and MCTS}
+\end{abstract}
+
+\section{Background}
+
+\subsection{First-Order Logic}
+(TODO Giles copy traditional FOL-with-equality background here)
+
+\subsection{Automatic Theorem Provers}
+(TODO Giles talk about ATP background/history here)
+
+\subsection{Machine Learning and Theorem Proving}
+(TODO talk about the intersection of ATP and ML, in particular with respect to proof search guidance)
+
+TODO The Deep Network Guided Proof Search (DNGPS) system~\cite{DNGPS} should be mentioned.
+
+\section{Introduction}
+Recent advances~\cite{graph-cnn,gcn,gcn-relational} in neural network systems allow for processing graph-structured data in a neural context.
+Graphs are a natural representation for logical formulae as found in automatic theorem provers~\cite{formula-graph}, suggesting a new breed of \emph{neural ATP} in which proof search is guided by a neural black-box acting as ``mathematician's intuition''.
+Much previous work on integrating machine-learned heuristics into automatic theorem provers has relied on hand-engineered features~\cite{MaLeCoP,FEMaLeCoP,rlCoP} or other embedding methods~\cite{ENIGMA}, which have the advantage of simplicity and relative efficiency, but do not encode all information available.
+By contrast, a neural method which takes into account all information should allow for greater precision in proof guidance systems.
+However, in practice there are several implementation issues which must be avoided in order for neural systems to integrate with efficient traditional ATPs.
+\begin{enumerate}
+	\item Proof state in such systems may be very large, such as in saturation-based provers~\cite{Vampire}, leading to training data which is impractical to learn from and slow to evaluate. The DNGPS system side-stepped this by only evaluating a single clause and the conjecture, reducing the amount of information available for the neural network in exchange for brevity.
+	\item Data structures employed may be very opaque or ``unnatural'', containing artifice designed for efficiency rather than comprehension.
+	\item Systems may be very sensitive to latency, which can result in the introduction of neural guidance systems crippling prover throughput and hence performance. Even with the reduced amount of data processed, DNGPS employed a two-phase approach in which the prover ran for some time with network guidance and then for the remainder without guidance.
+\end{enumerate}
+%
+By avoiding these issues with a novel prover architecture and exploring several options to improve efficiency, the \lerna{}\footnote{\textbf{Le}arning to \textbf{R}eason with \textbf{N}eural \textbf{A}rchitectures. Lerna is also the lair of the mythical many-headed beast \textsc{Hydra}.} system explores a step toward useful neural automatic theorem provers.
+
+\section{Design}
+\subsection{Rationale}
+\subsection{Architecture}
+\subsection{Implementation}
+
+\section{Calculus}
+\section{Oracle}
+
+\section{Learning}
+TODO should ML results go here?
+
+\subsection{Data Collection and Augmentation}
+\subsection{Translation to Graphs}
+\subsection{Neural Architecture}
+
+\subsection{Neural Network Throughput}
+To measure network throughput, the network evaluated \(\approx\) 500MB of pre-recorded data with various batch sizes --- batch size represents a tradeoff between latency of evaluations and parallelism opportunity for a GPU.
+Mean throughput (measured in evaluations/second) for each batch size is shown in Table \ref{table:network-throughput}, representing the total number of tableaux sub-goals evaluated in a single second.
+As expected, neural network throughput for this task increases rapidly when allowed to process inputs in batches.
+In practice a larger batch size was more helpful for proof search, suggesting that a small amount of latency does not significantly affect search in the long term.
+
+\begin{table}
+	\caption{Mean neural network throughput versus batch size: evaluations per second.}
+	\centering
+	\begin{tabular}{c | c}
+		\textbf{Batch Size} & \textbf{Mean Throughput (evals./sec)}\\
+		\hline
+		1 & 254.2\\
+		8 & 887.9\\
+		32 & 2,128.3\\
+		128 & 3,015.0\\
+	\end{tabular}
+	\label{table:network-throughput}
+\end{table}
+
+\section{Results}
+\subsection{Hardware}
+All results collected on commodity hardware (TODO talk about specs).
+
+\subsection{Benchmark Results}
+
+Table \ref{table:m2k-results} shows the total number of theorems proved using various configurations of Z3 and LeRNA on the M2k dataset.
+Z3 ran for a full 10 seconds to establish baseline performance, then as an oracle for 20 milliseconds to determine the number of ``trivial'' problems.
+LeRNA ran on an identical dataset, first without guidance from the neural heuristic, then with guidance.
+
+\begin{table}
+	\caption{Total theorems proved on the M2k dataset.}
+	\centering
+	\begin{tabular}{r | c}
+		\textbf{Configuration} & \textbf{Theorems Proved}\\
+		\hline
+		Z3 (10s, as baseline) & 1216\\
+		Z3 (20ms, as oracle) & 711\\
+		LeRNA, unguided (10s, with oracle) & 969\\
+		LeRNA, guided (10s, with oracle) & 1012\\
+						      & FIXME there is a bug, these ought be better\\
+	\end{tabular}
+	\label{table:m2k-results}
+\end{table}
+
+\section{Conclusion}
+\section{Future Work}
+
+\bibliographystyle{splncs04}
+\bibliography{references}
+\end{document}
