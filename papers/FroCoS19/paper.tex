@@ -1,6 +1,7 @@
 \documentclass[runningheads]{llncs}
-\usepackage{graphviz}
+\usepackage{graphicx}
 \usepackage{hyperref}
+\usepackage{subcaption}
 \newcommand{\lerna}{\textsc{Lerna}}
 \newcommand{\z}[1]{\textsc{Z3}}
 \newcommand{\mizarlarge}{\textit{M40k}}
@@ -92,46 +93,63 @@ Although the data is collected by running the system itself (and therefore might
 A large dataset of satisfiable and unsatisfiable goals were collected by running the unguided prover on the \mizarlarge{} dataset for 10 seconds.
 As soon as the prover determines the satisfiability of any sub-goal, the formula it represents and its status is recorded.
 This resulted in 18,340 unsatisfiable examples and 1,845,267 satisfiable examples, occupying 6GB of disk space.
-The dataset is very imbalanced (due to a combination of weakening rules producing a large number of trivially-satisfiable examples, and to prover termination after after the goal is shown to be unsatisfiable), at a ratio of around 100:1.
+The dataset is very imbalanced (due to a combination of weakening rules producing a large number of trivially-satisfiable examples, and to prover termination after the goal is shown to be unsatisfiable), at a ratio of around 100:1.
 
 \subsection{Translation to Graphs}
 Wang et al.~\cite{formula-graph} give a translation from higher-order formulae to directed graphs, and a similar scheme is used here.
 Constants, function symbols, predicate symbols, and bound variables are given their own node.
 Application of functions and predicates to arguments are represented as an ``application node'' with two children: the symbol node and an ``argument list'' node representing the list of arguments.
 Propositional connectives and equality have the obvious representation, while quantifiers have two children: the variable they bind and their sub-formula.
-Common sub-graphs are merged.
+
+To produce an input graph from a formula \(F\), the formula is first parsed into an abstract syntax tree.
+Common sub-trees up to \(\alpha\)-equivalence are merged, then the resulting directed acyclic graph has any named-symbol nodes replaced with an opaque, nameless label such as "predicate" or "variable" --- since distinct symbols remain as distinct nodes under this scheme, no information is lost other than the natural-language semantics of the symbol name.
+In practice, undirected graphs improved model performance so the graph is made undirected before encoding node labels as one-hot inputs to produce the final input graphs.
 
 An example formula's translation from
 \[
-	\forall X, \left[p\left(f(c), X\right) \wedge \lnot\left(f(c) = d\right)\right]
+	F = \forall X, \left[p\left(f(c), X\right) \wedge \lnot\left(f(c) = d\right)\right]
 \]
-is shown in figure...
+is shown in Figure \ref{figure:translation}.
 
 \begin{figure}
+	\centering
+	\begin{subfigure}{.4\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{translation-ast}
+		\caption{The AST for \(F\).}
+	\end{subfigure}
+	\begin{subfigure}{.3\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{translation-graph}
+		\caption{De-duplicated DAG.}
+	\end{subfigure}
+	\begin{subfigure}{.3\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{translation-nameless}
+		\caption{Nameless DAG.}
+	\end{subfigure}
+	\begin{subfigure}{.3\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{translation-undirected}
+		\caption{Final result.}
+	\end{subfigure}
+	\caption{The translation process from \(F\) to a graph as seen by the neural network.}
+	\label{figure:translation}
 \end{figure}
 
 \subsection{Augmentation}
+One possible solution~\cite{imbalanced} to the problem of classification on imbalanced domains is to synthesize new data for under-represented classes --- in this case unsatisfiable formulae --- from existing data by augmenting it.
+A classic example is augmenting image data by cropping, flipping or adding noise to existing images.
+
+There are many possible ways to augment formulae graphs.
+For this prototype, a simple approach is taken in which a small number of nonsense formulae are added to the graph by randomly adding nodes/edges where appropriate.
+This approach has the advantage of exposing the network to ``noise'' such as additional axioms which might well occur in practice, but if the network is adequately capable of filtering these then no new formulae are actually seen.
+
 \subsection{Neural Architecture}
+TODO set fixed architecture and report on this.
 
-\subsection{Neural Network Throughput}
-To measure network throughput, the network evaluated \(\approx\) 500MB of pre-recorded data with various batch sizes --- batch size represents a tradeoff between latency of evaluations and parallelism opportunity for a GPU.
-Mean throughput (measured in evaluations/second) for each batch size is shown in Table \ref{table:network-throughput}, representing the total number of tableaux sub-goals evaluated in a single second.
-As expected, neural network throughput for this task increases rapidly when allowed to process inputs in batches.
-In practice a larger batch size was more helpful for proof search, suggesting that a small amount of latency does not significantly affect search in the long term.
-
-\begin{table}
-	\caption{Mean neural network throughput versus batch size: evaluations per second.}
-	\centering
-	\begin{tabular}{c | c}
-		\textbf{Batch Size} & \textbf{Mean Throughput (evals./sec)}\\
-		\hline
-		1 & 254.2\\
-		8 & 887.9\\
-		32 & 2,128.3\\
-		128 & 3,015.0\\
-	\end{tabular}
-	\label{table:network-throughput}
-\end{table}
+\subsection{Implementation}
+TODO discuss implementation with PyTorch~\cite{pytorch} and its graph-processing extension PyTorch Geometric~\cite{pytorch-geometric}.
 
 \section{Results}
 \label{section:results}

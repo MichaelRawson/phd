@@ -1,0 +1,30 @@
+graph ast {
+	all [label=10];
+	x [label=1];
+	and [label=9];
+	p_app[label=6];
+	p [label=4];
+	p_args [label=5];
+	fc_app [label=6];
+	f [label=3];
+	fc_args [label=5];
+	c [label=2];
+	not [label=8];
+	eq [label=7];
+	d [label=2];
+
+	all -- x;
+	all -- and;
+	and -- p_app;
+	and -- not;
+	p_app -- p;
+	p_app -- p_args;
+	p_args -- fc_app;
+	p_args -- x;
+	fc_app -- f;
+	fc_app -- fc_args;
+	fc_args -- c;
+	not -- eq;
+	eq -- fc_app;
+	eq -- d;
+}
