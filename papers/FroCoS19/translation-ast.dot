@@ -1,0 +1,38 @@
+digraph ast {
+	all [label=ALL];
+	x1 [label=X];
+	and [label=AND];
+	p_app[label=APP];
+	p [label=p];
+	p_args [label=ARGS];
+	f1_app [label=APP];
+	f1 [label=f];
+	f1_args [label=ARGS];
+	c1 [label=c];
+	x2 [label=X];
+	not [label=NOT];
+	eq [label=EQ];
+	f2_app [label=APP];
+	f2 [label=f];
+	f2_args [label=ARGS];
+	c2 [label=c];
+	d [label=d];
+
+	all -> x1;
+	all -> and;
+	and -> p_app;
+	and -> not;
+	p_app -> p;
+	p_app -> p_args;
+	p_args -> f1_app;
+	p_args -> x2;
+	f1_app -> f1;
+	f1_app -> f1_args;
+	f1_args -> c1;
+	not -> eq;
+	eq -> f2_app;
+	eq -> d;
+	f2_app -> f2;
+	f2_app -> f2_args;
+	f2_args -> c2;
+}

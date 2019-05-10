@@ -1,0 +1,30 @@
+digraph ast {
+	all [label=ALL];
+	x [label=X];
+	and [label=AND];
+	p_app[label=APP];
+	p [label=p];
+	p_args [label=ARGS];
+	fc_app [label=APP];
+	f [label=f];
+	fc_args [label=ARGS];
+	c [label=c];
+	not [label=NOT];
+	eq [label=EQ];
+	d [label=d];
+
+	all -> x;
+	all -> and;
+	and -> p_app;
+	and -> not;
+	p_app -> p;
+	p_app -> p_args;
+	p_args -> fc_app;
+	p_args -> x;
+	fc_app -> f;
+	fc_app -> fc_args;
+	fc_args -> c;
+	not -> eq;
+	eq -> fc_app;
+	eq -> d;
+}
