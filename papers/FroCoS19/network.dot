@@ -1,0 +1,23 @@
+digraph network {
+	node[shape=box];
+	rotate=90;
+
+	input [label="Input (17)"];
+	embedding [label="Embedding (64)"];
+	input_rest [label="..."];
+	embedding_rest [label="..."];
+	conv [shape=record,label="{Convolution + ReLU (Nx64)|Convolution + ReLU (Nx64)|Convolution + ReLU (Nx64)|Convolution + ReLU (Nx64)}"];
+	convpool [shape=record,label="{Convolution + ReLU (Nx64)|Top-K Pooling (Nx64), (P1x64)|Convolution + ReLU (P1x64)|Top-K Pooling (P1x64), (P2x64)|Convolution + ReLU (P2x64)|Top-K Pooling (P2x64), (P3x64)}"];
+	convmaxpool [shape=record,label="{Convolution + ReLU (P3x64)|Max-Pooling (P3x64), (64)}"];
+	fc [shape=record,label="{Fully Connected (64), (32)|ReLU|Fully Connected (32), (2)}"];
+	softmax [label="Softmax (2)"];
+
+	input -> embedding;
+	input_rest -> embedding_rest;
+	embedding -> conv;
+	embedding_rest -> conv;
+	conv -> convpool;
+	convpool -> convmaxpool;
+	convmaxpool -> fc;
+	fc -> softmax;
+}

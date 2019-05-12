@@ -1,17 +1,17 @@
 graph ast {
-	all [label=10];
-	x [label=1];
-	and [label=9];
-	p_app[label=6];
-	p [label=4];
-	p_args [label=5];
-	fc_app [label=6];
-	f [label=3];
-	fc_args [label=5];
-	c [label=2];
-	not [label=8];
-	eq [label=7];
-	d [label=2];
+	all [label=10,color=lightblue,style=filled];
+	x [label=1,color=gold,style=filled];
+	and [label=9,color=chocolate,style=filled];
+	p_app[label=6,color=chartreuse,style=filled];
+	p [label=4,color=orange,style=filled];
+	p_args [label=5,color=hotpink,style=filled];
+	fc_app [label=6,color=chartreuse,style=filled];
+	f [label=3,color=seagreen,style=filled];
+	fc_args [label=5,color=hotpink,style=filled];
+	c [label=2,color=royalblue,style=filled];
+	not [label=8,color=purple,style=filled];
+	eq [label=7,color=red,style=filled];
+	d [label=2,color=royalblue,style=filled];
 
 	all -- x;
 	all -- and;

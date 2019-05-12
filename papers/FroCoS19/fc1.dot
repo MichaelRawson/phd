@@ -1,0 +1,5 @@
+graph test {
+	n0 [shape=none,margin=none,label=<<table border="1" cellborder="0" cellspacing="0"><tr><td bgcolor="#ffffff"></td><td bgcolor="#000000"></td><td bgcolor="#ffffff"></td><td bgcolor="#000000"></td></tr><tr><td bgcolor="#ffffff"></td><td bgcolor="#ffffff"></td><td bgcolor="#ffffff"></td><td bgcolor="#ffffff"></td></tr><tr><td bgcolor="#000000"></td><td bgcolor="#ffffff"></td><td bgcolor="#ffffff"></td><td bgcolor="#000000"></td></tr><tr><td bgcolor="#ffffff"></td><td bgcolor="#000000"></td><td bgcolor="#ffffff"></td><td bgcolor="#000000"></td></tr><tr><td bgcolor="#ffffff"></td><td bgcolor="#000000"></td><td bgcolor="#000000"></td><td bgcolor="#000000"></td></tr><tr><td bgcolor="#ffffff"></td><td bgcolor="#ffffff"></td><td bgcolor="#000000"></td><td bgcolor="#ffffff"></td></tr><tr><td bgcolor="#000000"></td><td bgcolor="#000000"></td><td bgcolor="#ffffff"></td><td bgcolor="#ffffff"></td></tr><tr><td bgcolor="#000000"></td><td bgcolor="#000000"></td><td bgcolor="#000000"></td><td bgcolor="#000000"></td></tr></table>>];
+
+
+}

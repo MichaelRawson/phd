@@ -2,6 +2,7 @@
 \usepackage{graphicx}
 \usepackage{hyperref}
 \usepackage{subcaption}
+\usepackage{textcomp}
 \newcommand{\lerna}{\textsc{Lerna}}
 \newcommand{\z}[1]{\textsc{Z3}}
 \newcommand{\mizarlarge}{\textit{M40k}}
@@ -15,20 +16,37 @@
 \institute{
 	University of Manchester, UK\\
 	\email{michael@rawsons.uk}\and
-	University of Manchester, UK
+	University of Manchester, UK\\
+	\email{regerg@cs.man.ac.uk}
 }
 \maketitle
 
 \begin{abstract}
-	We present the \lerna{} system, a neurally-guided automatic theorem prover for first-order logic with equality.
-	The system uses a neural network trained on previous proof search attempts to evaluate subgoals based directly on their structure, and hence bias proof search toward success.
+	We present a prototype of a neurally-guided automatic theorem prover for first-order logic with equality.
+	The prototype uses a neural network trained on previous proof search attempts to evaluate subgoals based directly on their structure, and hence bias proof search toward success.
 	An existing first-order theorem prover is employed to dispatch easy subgoals and prune branches which cannot be solved.
 	Exploration of the search space is asynchronous with respect to both the evaluation network and the existing prover, allowing for efficient batched neural network execution and for natural parallelism within the prover.
+	Evaluation on the MPTP dataset shows that the prover can improve with learning.
 \keywords{ATP \and Graph Convolutional Network \and Tableaux \and MCTS}
 \end{abstract}
 
-\section{Background}
+\section{Introduction}
+Recent advances~\cite{graph-cnn,gcn,gcn-relational} in neural network systems allow for processing graph-structured data in a neural context.
+Graphs are a natural representation for logical formulae as found in automatic theorem provers (ATPs)~\cite{formula-graph}, suggesting a new breed of \emph{neural ATP} in which proof search is guided by a neural black-box acting as ``mathematician's intuition''.
+Much previous work on integrating machine-learned heuristics into automatic theorem provers has relied on hand-engineered features~\cite{MaLeCoP,FEMaLeCoP,rlCoP} or other embedding methods~\cite{ENIGMA}, which have the advantage of simplicity and relative efficiency, but do not encode all information available.
+By contrast, a neural method which takes into account all information should allow for greater precision in proof guidance systems.
+However, in practice there are several implementation issues which must be avoided in order for neural systems to integrate with efficient traditional ATPs.
+Deep Network Guided Proof Search (DNGPS)~\cite{DNGPS} is an example of previous work in this area, which integrated a deep neural guidance system into the saturation-based prover E~\cite{E}.
 
+\begin{enumerate}
+	\item Proof state in such systems may be very large, such as in saturation-based provers~\cite{Vampire}, leading to training data which is impractical to learn from and slow to evaluate.  side-stepped this by only evaluating a single clause at a time (instead of large set) and the conjecture, reducing the amount of information available for the neural network in exchange for brevity.
+	\item Data structures employed may be very opaque or ``unnatural'', containing artifice designed for efficiency rather than natural comprehension by a neural network.
+	\item Systems may be very sensitive to latency, which can result in the introduction of neural guidance systems crippling prover throughput and hence performance. Even with the reduced amount of data processed, DNGPS employed a two-phase approach in which the prover ran for some time with network guidance and then for the remainder without guidance.
+\end{enumerate}
+%
+Attempting to solve these issues with a novel prover architecture, and exploring several options to improve overall efficiency, the prototype system \lerna{}\footnote{\textbf{Le}arning to \textbf{R}eason with \textbf{N}eural \textbf{A}rchitectures. Lerna is also the lair of the mythical many-headed beast \textsc{Hydra}.} takes an alternative step toward useful neural automatic theorem provers.
+
+\section{Background}
 \subsection{First-Order Logic}
 (TODO copy Giles' traditional FOL-with-equality background here)
 
@@ -44,19 +62,7 @@ TODO The Deep Network Guided Proof Search (DNGPS) system~\cite{DNGPS} should be 
 For training and evaluation purposes a set of problems exported from the Mizar Mathematical Library~\cite{mizar} by the MPTP~\cite{MPTP} system are used.
 Urban et al.~\cite{rlCoP} took a subset\footnote{\url{https://github.com/JUrban/deepmath/blob/master/M2k_list}} of the large \mizarlarge{} problem set (containing 32,524 problems) and called it \mizarsmall{} (containing 2004 problems).
 
-\section{Introduction}
-Recent advances~\cite{graph-cnn,gcn,gcn-relational} in neural network systems allow for processing graph-structured data in a neural context.
-Graphs are a natural representation for logical formulae as found in automatic theorem provers~\cite{formula-graph}, suggesting a new breed of \emph{neural ATP} in which proof search is guided by a neural black-box acting as ``mathematician's intuition''.
-Much previous work on integrating machine-learned heuristics into automatic theorem provers has relied on hand-engineered features~\cite{MaLeCoP,FEMaLeCoP,rlCoP} or other embedding methods~\cite{ENIGMA}, which have the advantage of simplicity and relative efficiency, but do not encode all information available.
-By contrast, a neural method which takes into account all information should allow for greater precision in proof guidance systems.
-However, in practice there are several implementation issues which must be avoided in order for neural systems to integrate with efficient traditional ATPs.
-\begin{enumerate}
-	\item Proof state in such systems may be very large, such as in saturation-based provers~\cite{Vampire}, leading to training data which is impractical to learn from and slow to evaluate. The DNGPS system side-stepped this by only evaluating a single clause and the conjecture, reducing the amount of information available for the neural network in exchange for brevity.
-	\item Data structures employed may be very opaque or ``unnatural'', containing artifice designed for efficiency rather than comprehension.
-	\item Systems may be very sensitive to latency, which can result in the introduction of neural guidance systems crippling prover throughput and hence performance. Even with the reduced amount of data processed, DNGPS employed a two-phase approach in which the prover ran for some time with network guidance and then for the remainder without guidance.
-\end{enumerate}
-%
-By avoiding these issues with a novel prover architecture and exploring several options to improve efficiency, the \lerna{}\footnote{\textbf{Le}arning to \textbf{R}eason with \textbf{N}eural \textbf{A}rchitectures. Lerna is also the lair of the mythical many-headed beast \textsc{Hydra}.} system explores a step toward useful neural automatic theorem provers.
+
 \section{Design}
 \label{section:Design}
 \subsection{Rationale}
@@ -93,7 +99,7 @@ Although the data is collected by running the system itself (and therefore might
 A large dataset of satisfiable and unsatisfiable goals were collected by running the unguided prover on the \mizarlarge{} dataset for 10 seconds.
 As soon as the prover determines the satisfiability of any sub-goal, the formula it represents and its status is recorded.
 This resulted in 18,340 unsatisfiable examples and 1,845,267 satisfiable examples, occupying 6GB of disk space.
-The dataset is very imbalanced (due to a combination of weakening rules producing a large number of trivially-satisfiable examples, and to prover termination after the goal is shown to be unsatisfiable), at a ratio of around 100:1.
+The dataset is very imbalanced (due to a combination of weakening rules producing a large number of trivially-satisfiable examples, and to immediate prover termination after the goal is shown to be unsatisfiable), at a ratio of around 100:1.
 
 \subsection{Translation to Graphs}
 Wang et al.~\cite{formula-graph} give a translation from higher-order formulae to directed graphs, and a similar scheme is used here.
@@ -104,60 +110,142 @@ Propositional connectives and equality have the obvious representation, while qu
 To produce an input graph from a formula \(F\), the formula is first parsed into an abstract syntax tree.
 Common sub-trees up to \(\alpha\)-equivalence are merged, then the resulting directed acyclic graph has any named-symbol nodes replaced with an opaque, nameless label such as "predicate" or "variable" --- since distinct symbols remain as distinct nodes under this scheme, no information is lost other than the natural-language semantics of the symbol name.
 In practice, undirected graphs improved model performance so the graph is made undirected before encoding node labels as one-hot inputs to produce the final input graphs.
-
-An example formula's translation from
-\[
-	F = \forall X, \left[p\left(f(c), X\right) \wedge \lnot\left(f(c) = d\right)\right]
-\]
-is shown in Figure \ref{figure:translation}.
+An example formula's translation is shown in Figure \ref{figure:translation}.
 
 \begin{figure}
 	\centering
-	\begin{subfigure}{.4\textwidth}
+	\begin{subfigure}{.5\textwidth}
 		\centering
 		\includegraphics[width=\linewidth]{translation-ast}
-		\caption{The AST for \(F\).}
+		\caption{AST.}
 	\end{subfigure}
-	\begin{subfigure}{.3\textwidth}
+	\begin{subfigure}{.39\textwidth}
 		\centering
 		\includegraphics[width=\linewidth]{translation-graph}
 		\caption{De-duplicated DAG.}
 	\end{subfigure}
-	\begin{subfigure}{.3\textwidth}
+	\begin{subfigure}{.4\textwidth}
 		\centering
 		\includegraphics[width=\linewidth]{translation-nameless}
 		\caption{Nameless DAG.}
 	\end{subfigure}
-	\begin{subfigure}{.3\textwidth}
+	\begin{subfigure}{.35\textwidth}
 		\centering
 		\includegraphics[width=\linewidth]{translation-undirected}
 		\caption{Final result.}
 	\end{subfigure}
-	\caption{The translation process from \(F\) to a graph as seen by the neural network.}
+	\caption{The translation process for \(\forall X \left[p\left(f(c), X\right) \wedge \lnot\left(f(c) = d\right)\right]\) to a graph, as seen by the neural network.}
 	\label{figure:translation}
 \end{figure}
 
 \subsection{Augmentation}
+\label{section:augmentation}
 One possible solution~\cite{imbalanced} to the problem of classification on imbalanced domains is to synthesize new data for under-represented classes --- in this case unsatisfiable formulae --- from existing data by augmenting it.
-A classic example is augmenting image data by cropping, flipping or adding noise to existing images.
+An example is augmenting image data by cropping, flipping or adding noise to existing images.
 
 There are many possible ways to augment formulae graphs.
 For this prototype, a simple approach is taken in which a small number of nonsense formulae are added to the graph by randomly adding nodes/edges where appropriate.
 This approach has the advantage of exposing the network to ``noise'' such as additional axioms which might well occur in practice, but if the network is adequately capable of filtering these then no new formulae are actually seen.
 
 \subsection{Neural Architecture}
-TODO set fixed architecture and report on this.
+Convolutional neural networks~\cite{cnn} are well-known as a method for processing images.
+In a typical convolutional architecture, there are a series of filtering stages, followed by a densely-connected neural network.
+Each filtering stage intuitively combines data from local features (via \emph{convolution}), then reduces the dimensions of the image (via \emph{pooling}) for the next stage.
+Graph neural networks have analagous convolution~\cite{gcn} (combining information from neighbouring nodes) and pooling~\cite{top-k-pooling} (merging nodes to reduce the size of the input graph) operators.
 
-\subsection{Implementation}
-TODO discuss implementation with PyTorch~\cite{pytorch} and its graph-processing extension PyTorch Geometric~\cite{pytorch-geometric}.
+A brief period of experimentation with these operators yielded the following network architecture, shown in Figure \ref{figure:network}.
+It is not claimed that this is the optimal configuration, and no grid search has yet taken place to optimize the network parameters.
+The network is shown processing a formula in Figure \ref{figure:computation}.
+\begin{enumerate}
+	\item Input. a graph \(G\) consisting of one-hot encoded nodes \(N\) and edges \(E\).
+	\item Embedding. Each node is mapped to an embedding vector of size 64 via a trained dense embedding.
+	\item Initial Convolution. 4 convolution layers are applied to the graph with rectified linear activations. This yields a graph of the same size, but with information exchanged between nodes.
+	\item Convolution/Pooling. Similar convolution layers are then passed through \emph{top-\(k\)}~\cite{top-k-pooling} layers, retaining \(k = 60\%\) of the graph's nodes. This is repeated 3 times, reducing the size of the graph considerably.
+	\item Convolution/Max-Pooling. A final convolution layer feeds into a max-pooling layer, combining all remaining node data into one datum, and dropping the edge data.
+	\item Fully Connected. A fully-connected hidden layer with rectified linear activation halves the input size.
+	\item Fully Connected/Softmax. A fully-connected final layer outputs two class labels, with softmax activation.
+\end{enumerate}
+
+To reduce over-fitting, dropout~\cite{dropout} is applied in convolutional and fully-connected layers, \(p = 0.1\).
+
+\begin{figure}
+	\centering
+	\includegraphics[width=\linewidth]{network}
+	\caption{The neural network architecture. Initially there are \(N\) nodes, then after pooling there are \(P_1, P_2, P_3\) nodes. Node-level embedding layers are shown per-node, graph-level convolutional and pooling layers are shown per-graph.}
+	\label{figure:network}
+\end{figure}
+
+\subsection{Implementation and Training}
+This architecture was implemented with the PyTorch~\cite{pytorch} neural network library, combined with a graph-processing (``geometric'') extension library, PyTorch Geometric~\cite{pytorch-geometric}, which together provide facilities for automatic differentiation, GPU-accelerated training, pre-programmed layers for graph processing, and various utilities.
+
+The dataset is split into a large training set and a smaller test set (200 balanced examples), since unsatisfiable examples were difficult to obtain.
+The training set was then augmented as described in section \ref{section:augmentation} to produce a total training set of 3.5 million examples.
+The network was trained on commodity desktop hardware with a mid-range GPU~\footnote{NVIDIA\textsuperscript{\textregistered} GeForce\textsuperscript{\textregistered} GT 730.} for 8 epochs/24 hours, optimizing a negative log-likelihood loss function.
+
+\begin{figure}
+	\centering
+	\captionsetup[subfigure]{justification=centering}
+	\begin{subfigure}{.3\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{embedding}
+		\caption{Output of embedding layer.}
+	\end{subfigure}
+	\begin{subfigure}{.3\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{conv}
+		\caption{Output after initial convolutions.}
+	\end{subfigure}
+	\begin{subfigure}{.3\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{pool0}
+		\caption{After first pooling.}
+	\end{subfigure}
+	\begin{subfigure}{.5\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{pool1}
+		\caption{After second pooling.}
+	\end{subfigure}
+	\begin{subfigure}{.3\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{fc0}
+		\caption{After max-pooling.}
+	\end{subfigure}
+	\caption{Computation in the neural network, showing intermediate values involved in the network (correctly) predicting that an input formula from the test set is unsatisfiable. Vectors of floating-point numbers are shown as grids.}
+	\label{figure:computation}
+\end{figure}
+
+\subsection{Evaluation}
+The network was evaluated on the balanced test set of 200 examples, as described.
+Various metrics for accuracy are shown in Table \ref{table:network-evaluation}.
+While these results are very promising, it should be emphasised that it is unclear how effective a train/test split is in this setting (since similar subgoals may occur in both sets, even with proper data hygiene), and that this network is not attempting to determine the satisfiability of arbitrary formulae, merely those that occur in proof attempts on the \mizarlarge{} dataset.
+
+The higher precision and lower recall values are likely an artefact of the augmentation process.
+However, even with these caveats, the network performance is surpising and is practically useful for improving proof search in this dataset.
+
+\begin{table}
+	\caption{Accuracy metrics for the neural heuristic.}
+	\centering
+	\begin{tabular}{r | c}
+		\textbf{Metric} & \textbf{Score}\\
+		\hline
+		Accuracy & 93.0\%\\
+		True Positive&99\\
+		True Negative&87\\
+		False Positive&13\\
+		False Negative&1\\
+		Precision&0.990\\
+		Recall&0.884\\
+		\(F_1\)&0.934\\
+	\end{tabular}
+	\label{table:network-evaluation}
+\end{table}
 
 \section{Results}
 \label{section:results}
-\subsection{Hardware}
-All results collected on commodity hardware (TODO talk about specs).
+In order to evaluate the effect of heuristic guidance on the existing prover, the prover ran both with and without guidance for 10 seconds on all available CPU cores.
+All results were collected on commodity desktop hardware\footnote{Intel\textsuperscript{\textregistered} Core\textsuperscript{\texttrademark} i7-6700 CPU @ 3.40GHz, 16GB RAM.}.
 
 \subsection{Benchmark Results}
-
 Table \ref{table:m2k-results} shows the total number of theorems proved using various configurations of \z3 and LeRNA on the M2k dataset.
 \z3 ran for a full 10 seconds to establish baseline performance, then as an oracle for 20 milliseconds to determine the number of ``trivial'' problems.
 LeRNA ran on an identical dataset, first without guidance from the neural heuristic, then with guidance.
@@ -219,14 +307,13 @@ It seems unlikely that the subgoal is materially easier to dispatch than its par
 
 \subsection{Machine-Learned Heuristic}
 Many other graph-based neural architectures are possible.
-PyTorch Geometric alone currently includes nearly 40 other graph-specific neural layers pre-programmed from the literature.
+PyTorch Geometric alone currently includes nearly 40 other graph-specific neural layers pre-programmed from the literature\footnote{\url{https://rusty1s.github.io/pytorch_geometric/build/html/modules/nn.html}}.
 Neural models specifically for theorem proving are relatively under-studied.
 To combat this, data used for this paper will be published in the near future so that the machine-learning community can improve upon our simple models.
-
 Different approaches to formula-to-graph translation, symbol embeddings, data augmentation, and model integration may also be explored.
 
 \section{Acknowledgements}
-The authors wish to thank Josef Urban and his group in \v{C}VUT, Prague for their help and encouragement with early iterations of this work and for supplying the Mizar dataset used in this paper.
+The authors wish to thank Josef Urban and his group in \v{C}VUT, Prague for their help and encouragement with early iterations of this work, and for supplying the Mizar dataset used in this paper.
 
 \bibliographystyle{splncs04}
 \bibliography{references}

@@ -1,0 +1,6 @@
+graph test {
+	margin = 0;
+	n0 [shape=none,margin=none,label=<<table border="1" cellborder="0" cellspacing="0"><tr><td bgcolor="#000000"></td></tr><tr><td bgcolor="#ffffff"></td></tr></table>>];
+
+
+}
