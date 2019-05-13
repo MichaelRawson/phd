@@ -34,7 +34,7 @@
 \section{Introduction}
 Recent advances~ in neural network systems allow for processing graph-structured data in a neural context.
 Graphs are a natural representation for logical formulae as found in automatic theorem provers (ATPs), suggesting a new breed of \emph{neural ATP} in which proof search is guided by a neural black-box acting as ``mathematician's intuition''.
-However, in practice there are several implementation issues which must be avoided in order for neural systems to integrate with efficient traditional ATPs:
+However, in practice there are several implementation issues~\cite{lerna-discussion} which must be avoided in order for neural systems to integrate with efficient traditional ATPs:
 \begin{enumerate}
 	\item Proof state in such systems may be very large, such as in saturation-based provers, leading to training data which is impractical to learn from and slow to evaluate.
 	\item Data structures employed may be very opaque or ``unnatural'', containing artifice designed for efficiency rather than natural comprehension by a neural network.
