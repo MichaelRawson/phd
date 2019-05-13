@@ -1,0 +1,11 @@
+digraph architecture {
+	rankdir=LR;
+	heuristic [label="Neural Heuristic",shape=box];
+	search [label="Search",shape=cylinder];
+	oracle [label="Oracle ATP",shape=box];
+
+	search -> heuristic [label="Subgoals"];
+	heuristic -> search [label="Heuristic Scores"];
+	search -> oracle [label="Subgoals"];
+	oracle -> search [label="Sat/Unsat/Unknown"];
+}

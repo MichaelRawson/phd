@@ -1,0 +1,15 @@
+digraph search {
+	g0 [label=Goal,shape=diamond];
+	i1 [label=Inference,shape=box];
+	i2 [label=Inference,shape=box];
+	g1 [label=Goal,shape=diamond];
+	g2 [label=Goal,shape=diamond];
+	g3 [label=Goal,shape=diamond];
+
+	g0 -> i1;
+	g0 -> i2;
+	i1 -> g1;
+	i1 -> g2;
+	i2 -> g2;
+	i2 -> g3;
+}
