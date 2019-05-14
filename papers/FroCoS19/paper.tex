@@ -1,9 +1,11 @@
-\documentclass[runningheads]{llncs}
+\documentclass{llncs}
 \usepackage{graphicx}
 \usepackage{hyperref}
 \usepackage{mathpartir}
 \usepackage{subcaption}
 \usepackage{textcomp}
+\usepackage{wrapfig}
+
 \newcommand{\lerna}{\textsc{Lerna}}
 \newcommand{\z}[1]{\textsc{Z3}}
 \newcommand{\mizarlarge}{\textit{M40k}}
@@ -11,14 +13,12 @@
 \begin{document}
 \title{A Neural, Parallel Theorem Prover*}
 \author{
-	Michael Rawson*\orcidID{0000-0001-7834-1567}\inst{1} \and
-	Giles Reger\inst{2}
+	Michael Rawson*\orcidID{0000-0001-7834-1567} \and
+	Giles Reger
 }
 \institute{
 	University of Manchester, UK\\
-	\email{michael@rawsons.uk}\and
-	University of Manchester, UK\\
-	\email{regerg@cs.man.ac.uk}
+	\email{michael@rawsons.uk}, \email{giles.reger@manchester.ac.uk}
 }
 \maketitle
 
@@ -31,6 +31,7 @@
 \keywords{ATP \and Graph Convolutional Network \and Tableaux \and MCTS}
 \end{abstract}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
 Recent advances~ in neural network systems allow for processing graph-structured data in a neural context.
 Graphs are a natural representation for logical formulae as found in automatic theorem provers (ATPs), suggesting a new breed of \emph{neural ATP} in which proof search is guided by a neural black-box acting as ``mathematician's intuition''.
@@ -43,46 +44,49 @@ However, in practice there are several implementation issues~\cite{lerna-discuss
 %
 Attempting to solve these issues with a novel prover architecture, and exploring several options to improve overall efficiency, the prototype system \lerna{}\footnote{\textbf{Le}arning to \textbf{R}eason with \textbf{N}eural \textbf{A}rchitectures. Lerna is also the lair of the mythical many-headed beast \textsc{Hydra}.} takes an alternative step toward useful neural automatic theorem provers.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Background}
-An understanding of neural networks~\cite{neural-survey}, and of first-order logic and automatic theorem provers~\cite{fol-atp-survey} is assumed.
-The particular syntax of first-order logic used in this work is presented here as clarification.
 
-\subsection{Syntax of First-Order Logic}
-Terms \(t\) are either
-\begin{enumerate}
-	\item Variables \(x\), bound by a quantifier.
-	\item Function applications \(f\left(t_1, t_2, \ldots, t_n\right)\) where \(f\) is an \(n\)-ary function symbol. Constants \(c\) are a degenerate case in which \(n = 0\).
-\end{enumerate}
-%
-Formulae \(\phi, \psi\) are one of
-\begin{enumerate}
-	\item Truth \(\top\) or falsehood \(\bot\).
-	\item Equalities \(t_1 = t_2\).
-	\item Predicate applications \(p\left(t_1, t_2, \ldots, t_n\right)\), where \(p\) is an \(n\)-ary predicate symbol.
-	\item Negations \(\lnot \phi\), implications \(\phi_1 \Rightarrow \phi_2\), or equivalences \(\phi \equiv \psi\).
-	\item Conjunctions \(\phi_1 \wedge \phi_2 \wedge \ldots \wedge \phi_n\) or disjunctions \(\phi_1 \vee \phi_2 \vee \ldots \vee \phi_n\).
-	\item Universal or existential quantifiers \(\forall x. \phi, \exists x. \phi\).
-\end{enumerate}
+We assume basic familiarity with first-order logic, theorem proving, and  neural networks~\cite{neural-survey}.
 
-\subsection{Modern Automatic Theorem Provers}
-State-of-the-art ATP systems (e.g. E~\cite{E}, iProver~\cite{iProver}, Vampire~\cite{Vampire}, CVC4~\cite{CVC4}) utilise efficient proof calculi combined with highly-configurable search routines in order to explore a large search space efficiently.
-Generally, the search space in these systems slowly at first, then increases rapidly, leading to the maxim that a proof is typically found quickly or not at all.
-Portfolio modes~\cite{portfolio} are therefore employed in order to achieve good performance on a large set of practically-useful problems, such as those found in TPTP~\cite{TPTP}.
+\subsection{Logic and Theorem Proving}
+
+\paragraph{First-Order Logic}
+
+\lerna{} works with formulas in standard first-order logic with equality. Terms $t$ and formulas $\phi$ are recursively defined as follows
+\[
+\begin{array}{ll}
+t = & x \mid f\left(t_1, \ldots, t_n\right) \mid c \\
+\phi  =  & \top \mid \bot \mid t_1 = t_2 \mid p\left(t_1, \ldots, t_n\right) \mid \phi_1 \Rightarrow \phi_2 \mid \phi_1 \equiv \phi_2\mid \neg \phi \mid \\ &   \phi_1 \wedge \ldots \wedge \phi_n \mid \phi_1  \vee \ldots \vee \phi_n \mid \forall x. \phi \mid \exists x. \phi
+\end{array}
+\]
+where $x$ is a variable, $f$ is a $n$-ary function symbol, $c$ is a constant, and $p$ is a $n$-ary predicate symbol. Their meaning is defined as usual.
+
+%A formula is either true \(\top\), false \(\bot\), an equality between terms \(t_1 = t_2\), a predicate applied to terms \(p\left(t_1, t_2, \ldots, t_n\right)\), where \(p\) is an \(n\)-ary predicate symbol, a negated formula \(\lnot \phi\), an impliciation \(\phi_1 \Rightarrow \phi_2\), or equivalences \(\phi \equiv \psi\).
+%Conjunctions \(\phi_1 \wedge \phi_2 \wedge \ldots \wedge \phi_n\) or disjunctions \(\phi_1 \vee \phi_2 \vee \ldots \vee \phi_n\).
+%Universal or existential quantifiers \(\forall x. \phi, \exists x. \phi\).
+
+
+\paragraph{Modern Automatic Theorem Provers}
+An automated theorem prover (ATP) is a system able to automatically establish whether a formula (in first-order logic) is \emph{satisfiable} or \emph{unsatisfiable}; although, given the undecidability of this problem, ATPs may also return \emph{unknown}. Both saturation-based provers (e.g. E~\cite{E}, iProver~\cite{iProver}, Vampire~\cite{Vampire}) and SMT solvers (e.g. CVC4~\cite{CVC4} and Z3~\cite{Z3}) utilise efficient proof calculi combined with highly-configurable search routines in order to explore a large search space efficiently.
+%Generally, the search space in these systems slowly at first, then increases rapidly, leading to the maxim that a proof is typically found quickly or not at all.
+%Portfolio modes~\cite{portfolio} are therefore employed in order to achieve good performance on a large set of practically-useful problems, such as those found in TPTP~\cite{TPTP}.
 
 \subsection{Machine Learning and Theorem Proving}
-Despite the efficiency of such systems, they can still spend time exploring areas that a human mathematician would discard, and tuning such systems manually is in general extremely difficult~\cite{portfolio}.
-There is therefore interest in applying machine-learning techniques to automatic theorem provers, with the eventual aim of an ``intelligent'' theorem prover which can learn from past experience to develop an intuition, discard uninteresting search space, and tune performance in a more principled way.
+Despite the efficiency of modern ATP systems, they can still spend time exploring areas that a human mathematician would discard, and tuning such systems is, in general, extremely difficult~\cite{portfolio}.
+This has led to the application of machine-learning techniques, with the eventual aim of an ``intelligent'' theorem prover able to learn from past experience to develop an intuition, discard uninteresting search space, and tune performance in a more principled way.
 
-Work has proceeded in the fields of premise selection~\cite{DeepMath,MaSh,MaLARea,formula-graph}, static strategy selection~\cite{Bridge,MaLeS,E-MaLeS}, dynamic (run-time) strategy selection~\cite{dynamic-strategy-priority} and more recently, direct proof guidance~\cite{MaLeCoP,FEMaLeCoP,rlCoP,ENIGMA,DNGPS}.
-Proof guidance typically involves some form of machine-learned \emph{heuristic} which biases proof search in some way, allowing the prover to avoid parts of the search space deemed uninteresting by the heuristic.
+Previous work has focussed on premise selection~\cite{DeepMath,MaSh,MaLARea,formula-graph}, static strategy selection~\cite{Bridge,MaLeS,E-MaLeS}, dynamic (run-time) strategy selection~\cite{dynamic-strategy-priority} and more recently, direct proof guidance~\cite{MaLeCoP,FEMaLeCoP,rlCoP,ENIGMA,DNGPS}.
+Proof guidance typically involves a form of machine-learned \emph{heuristic} which biases proof search in some way, allowing the prover to avoid parts of the search space deemed uninteresting by the heuristic.
 
 Much previous work on integrating machine-learned heuristics into automatic theorem provers has relied on hand-engineered features~\cite{MaLeCoP,FEMaLeCoP,rlCoP} or other embedding methods~\cite{ENIGMA}, which have the advantage of simplicity and relative efficiency, but do not encode all information available.
-By contrast, a neural method which takes into account all information should allow for greater precision in proof guidance systems.
+By contrast, a neural method which takes into account all information (as utilised in this work) should allow for greater precision in proof guidance systems.
 Deep Network Guided Proof Search (DNGPS)~\cite{DNGPS} is an example of previous work in this area, which integrated a deep neural guidance system into the saturation-based prover E~\cite{E}.
 DNGPS achieved successful results, but suffered from the latency introduced into the system by the neural heuristic: despite processing only a reduced amount of the available proof state, the reduction in throughput necessitated a two-phase approach in which the prover was neurally-guided in the first phase, before falling back to traditional proof search in the second.
-rlCoP~\cite{rlCoP} is a connection-based reinforcement-learning prover which is not presently neurally-guided, but takes a similar approach to that taken in this paper and achieves impressive results.
 
-\subsection{Neural Networks for Formulae}
+\paragraph{rlCoP} The rlCoP system~\cite{rlCoP} is a connection-based reinforcement-learning prover which is not presently neurally-guided, but takes a similar approach to that taken in this paper and achieves impressive results.
+
+\paragraph{Neural Networks for Formulae}
 Neural networks are well-known tools for supervised learning~\cite{neural-survey}, and combined with trainable convolution/pooling operators are suitable for processing large-scale data such as images~\cite{cnn}.
 
 Processing structured data such as logical formulae is a relatively new domain for neural networks.
@@ -94,10 +98,11 @@ For example, the Graph Convolutional Network~\cite{gcn} includes the following c
 	H_{i + 1} = \sigma\left(\bar{D}^{-\frac{1}{2}}\bar{A}\bar{D}^{-\frac{1}{2}}H_iW_i\right)
 \]
 
-\subsection{The MPTP Problem Set}
+\paragraph{The MPTP Problem Set}
 For training and evaluation purposes a set of problems exported from the Mizar Mathematical Library~\cite{mizar} by the MPTP~\cite{MPTP} system are used.
 Urban et al.~\cite{rlCoP} took a subset\footnote{\url{https://github.com/JUrban/deepmath/blob/master/M2k_list}} of the large \mizarlarge{} problem set (containing 32,524 problems) and called it \mizarsmall{} (containing 2004 problems).
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Design}
 \label{section:Design}
 In order to achieve the goal of a neural theorem prover without the disadvantages associated with neural approaches, a new design of theorem prover is required.
@@ -105,8 +110,9 @@ Popular calculi used in existing ATPs tend to be unfriendly to neural guidance.
 For such a system, we require the following from the calculus:
 \begin{enumerate}
         \item \emph{Proof state must be small.} Attempting to evaluate large proof states structurally requires a lot of computation and resources. Saturation-based provers can have very large proof states, for example.
-        \item \emph{Evaluation of states must be possible in parallel.} Machine-learning algorithms tend to operate more efficiently in batches. Tree-based approaches (tableau \emph{etc.}) lend themselves to this, whereas saturation provers are inherently sequential.
-        \item \emph{Subgoals must be independent and self-contained.} If the prover has a notion of (sub-)goals which must be dispatched (such as in tableau provers), these should be independent of the rest of the search space, without e.g. unifiers. Otherwise, the learning system is trying to learn while blind to the context of the search.
+        \item \emph{Evaluation of states must be possible in parallel.} Machine-learning algorithms operate more efficiently in batches. Tree-based approaches (tableau \emph{etc.}) lend themselves to this, whereas saturation provers are inherently sequential.
+        \item \emph{Subgoals must be independent and self-contained.} If the prover has a notion of (sub-)goals which must be dispatched (such as in tableau provers), these should be independent of the rest of the search space.%, without e.g. unifiers. 
+        Otherwise, the learning system is trying to learn while blind to the context of the search.
 	\item \emph{Subgoals must be intelligible.} Adding ``noise'' such as clausification obscures the original intuition behind a goal, at least for human observers. While this is not necessarily the case for machine-learning algorithms, it seems likely that removing structure and adding artefacts will reduce model performance.
 \end{enumerate}
 We therefore implement a refutation prover based on a first-order tableaux calculus without unification, on non-clausal formulae.
@@ -117,18 +123,21 @@ In this context, proof state is small (only the current branch), evaluation of s
 In the calculus (see Section \ref{section:Calculus}) for this prover, there are two branching factors: each goal has a set of possible inferences, and each inference contains a set of possible sub-goals.
 To prove a goal, at least one inference must be proved.
 To prove an inference, all the inferences' sub-goals must be proved.
-A simple optimisation observation is that sub-goals might well be shared between inferences from all over the search space, so search becomes a directed acyclic graph, alternating between goals and inferences.
+A simple optimisation observation is that sub-goals might well be shared between inferences from all over the search space, so search becomes a directed acyclic graph, alternating between goals and inferences (illustrated in Fig.~\ref{fig:search}).
 
-\begin{figure}
+%\begin{figure}[t]
+\begin{wrapfigure}[12]{r}{0.5\textwidth} 
+\vspace{-26pt}
 	\centering
-	\includegraphics[width=0.6\linewidth]{search}
-	\caption{Search in the \lerna{} system, showing shared sub-goals.}
-\end{figure}
+	\includegraphics[width=0.9\linewidth]{search2.pdf}
+	\caption{Search in the \lerna{} system, showing shared sub-goals.\label{fig:search}}
+\end{wrapfigure}	
+%\end{figure}
 
 Now the search graph can be explored: in each step, a leaf (goal) node is selected for expansion, and all resulting inferences and sub-goals are added to the graph.
 If a goal has no possible inferences, it is satisfiable and can be removed from the search space.
 On the other hand, if a goal is trivial (i.e. contains a contradiction), it is unsatisfiable and can be marked as proven.
-This idea can be lifted to inferences: if an inference contains any satisfiable sub-goal, it too is satisfiable, whereas if an inference contains all unsatisfiable goals, it is unsatisfiable.
+This idea is lifted to inferences: if an inference contains any satisfiable sub-goal, it too is satisfiable, whereas if an inference contains all unsatisfiable goals, it is unsatisfiable.
 Proof search continues until the timeout is reached or the root goal is shown to be (un-)satisfiable.
 In order to dispatch trivial sub-goals quickly, an existing fast \emph{oracle} ATP is used (see Section \ref{section:oracle}).
 This may mark goals as (un-)satisfiable, at which point no further exploration is required.
@@ -145,35 +154,39 @@ After an inference is selected, the least-promising sub-goal is selected, and th
 The score \(s\) of a leaf node is the score assigned to it by the heuristic function.
 An inference's score is the minimum of their sub-goals' scores, and non-leaf sub-goal's score is the maximum of their inference's scores.
 
-\subsection{Architecture}
+\subsection{Architecture and Prototype Implementation}
 The system aims to consume all available CPU and GPU resources as efficiently as possible.
 To that end, proof search is asynchronous: the search algorithm generates new sub-goals, which are placed on two separate queues: one for the oracle ATP, another for heuristic evaluation.
-Proof search then continues elsewhere, while the oracle ATP is called in parallel on each sub-goal (consuming all available CPU) while the heuristic consumes batches of subgoals, efficiently utilising the available GPU resource.
-As information flows backwards from these processes, the search process updates its information about a given sub-goal and propagates that information upwards to the sub-goal's parent inferences, to influence future proof search: see Figure \ref{figure:architecture}.
+Proof search then continues elsewhere, while the oracle ATP is called in parallel on each sub-goal (consuming all available CPU) while the heuristic consumes batches of subgoals, efficiently utilising the available computational resource.
+As information flows backwards from these processes, the search process updates its information about a given sub-goal and propagates that information upwards to the sub-goal's parent inferences, to influence future proof search: see Fig. \ref{figure:architecture}.
 
-\begin{figure}
-	\includegraphics[width=\linewidth]{architecture}
-	\caption{A cartoon showing information flow in the system.}
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=0.8\linewidth]{architecture}
+	\caption{Illustrating information-flow in the system.}
 	\label{figure:architecture}
 \end{figure}
 
-\subsection{Implementation}
-The Rust~\cite{rust} programming language was chosen to implement the main prover (minus the heuristic), for its memory and thread-safety guarantees, as well as its support for managing memory allocation and algebraic datatypes.
-The implementation is currently just under 3,000 lines of Rust, not including \z3{}, the TPTP format parser or the implementation of perfect sharing.
-Python 3~\cite{python3} was used for the heuristic due to the large number of libraries available for neural network implementation in Python.
+%\subsection{}
+
+The prototype implementation (minus the heuristic) %was built in the Rust programming language.% was chosen to implement the main prover , for its memory and thread-safety guarantees, as well as its support for managing memory allocation and algebraic datatypes.
+%The implementation 
+is currently just under 3,000 lines of Rust, not including \z3{}, the TPTP format parser or the implementation of perfect sharing.
+Python 3 was used for the heuristic due to the large number of libraries available for neural network implementation in Python.
 The heuristic is implemented as a server, communicating with the main prover via a TCP socket.
 In principle this allows for the heuristic to be a shared resource with a centralised heuristic server, or a load-balanced cluster.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Calculus}
 \label{section:Calculus}
-The proof calculus used in this context may be extremely general: in fact, any function from goals to a finite set of possible inferences (themselves finite sets of sub-goals) will suffice, as long as each goal remains independent of any other such that the heuristic function can process all available information.  If the inference system is complete, there are no additional constraints such as orderings or fairness to ensure the completeness of the prover, as the balanced search algorithm (see Section \ref{section:Design}) will ensure this.
+The proof calculus used in the above architecture may be extremely general: in fact, any function from goals to a finite set of possible inferences (themselves finite sets of sub-goals) will suffice, as long as each goal remains independent of any other such that the heuristic function can process all available information.  If the inference system is complete, there are no additional constraints such as orderings or fairness to ensure the completeness of the prover, as the balanced search algorithm (see Section \ref{section:Design}) will ensure this.
 
 \lerna{} presently implements a refutation tableaux calculus~\cite{handbook-of-automated-reasoning} without unification.
-The calculus described is deliberately na\"ive in order to easily satisfy the design constraints described, but this is a weak point of this work and will be improved in future.
-A na\"ive calculus is not necessarily a problem in this context, as the heuristic should in principle select promising areas to explore and ignore uninteresting sub-goals.
+The calculus described is deliberately na\"ive in order to easily satisfy the design constraints given above, but may be replaced by a stronger calculus in the future. 
+A na\"ive calculus is not necessarily a problem as the heuristic should select promising areas to explore and ignore uninteresting sub-goals.
 However, a more efficient calculus would improve performance where the heuristic fails.
 
-\subsection{Refutation Tableaux}
+\paragraph{Refutation Tableaux}
 In order to show a conjecture \(C\) from a set of axioms \(A_i\), it suffices to negate \(C\) and the show that the resulting conjunction \(A_1 \wedge A_2 \wedge \ldots \wedge \lnot C\) is unsatisfiable.
 A set of inference rules of the form
 \begin{mathpar}
@@ -182,14 +195,7 @@ A set of inference rules of the form
 where \(\Gamma_i, \Delta\) are sets of formulae and \(\lnot\left(\Gamma_1 \wedge \Gamma_2 \wedge \ldots \Gamma_n\right) \Rightarrow \lnot \Delta\) is an unconditional tautology, form a refutation calculus.
 Proofs in this calculus can be expressed by closed trees of inference rules.
 
-\subsection{Complete Inferences}
-The inference rules in Figure \ref{figure:complete-inferences} form a complete inference system, by analogy with a first-order tableaux calculus without unification.
-A difference and point of interest is the rule for instantiating universal quantifiers: instead of instantiating a variable with any possible term \(t\) --- an infinite space --- it is instantiated with one function symbol (or constant) at a time, quantifying over new variables as needed.
-This allows for instantiating any term over multiple inference rules (effectively enumerating the Herbrand universe for the goal), but without an infinite number of possible inferences at any point.
-Equality is handled by a rule rewriting classes of equal ground terms.
-Both of these rules are complete yet inefficient, but both are likely to be used only a few times in order to provide enough of a ``hint'' to the oracle system for it to find a proof.
-
-\begin{figure}
+\begin{figure}[t]
 	\centering
 	\begin{mathpar}
 		\inferrule[contradiction]{ }{\phi, \lnot \phi, \Gamma}\and
@@ -206,56 +212,82 @@ Both of these rules are complete yet inefficient, but both are likely to be used
 	\label{figure:complete-inferences}
 \end{figure}
 
-\subsection{Weakening}
+\paragraph{Complete Inferences}
+The inference rules in Fig. \ref{figure:complete-inferences} form a complete inference system, by analogy with a first-order tableaux calculus without unification.
+A difference and point of interest is the rule for instantiating universal quantifiers: instead of instantiating a variable with any possible term \(t\) --- an infinite space --- it is instantiated with one function symbol (or constant) at a time, quantifying over new variables as needed.
+This allows for instantiating any term over multiple inference rules (effectively enumerating the Herbrand universe for the goal), but without an infinite number of possible inferences at any point.
+Equality is handled by a rule rewriting classes of equal ground terms.
+Both of these rules are complete yet inefficient, but both are likely to be used only a few times in order to provide enough of a ``hint'' to the oracle system for it to find a proof.
+
+
+
+\paragraph{Weakening}
 A weakening rule is an important part of \lerna{}'s calculus, since the \textsc{instantiation} and \textsc{equal} rule can produce a large number of formulae, some of which must be removed to help the oracle to prove the goal.
 Each application of the rule removes some amount of information from the goal in order to simplify it --- this is sound and corresponds to removing an axiom from proof search.
-The rule is merely
+The rule is merely\vspace{-0.5em}
 \begin{mathpar}
 	\inferrule[weaken]{\Gamma}{\phi, \Gamma}
 \end{mathpar}
 
-\subsection{Simplifications}
-Before each inferred goal is added to proof search, it is simplified with a simplification function mapping a goal to a possibly-simpler goal.
-This allows for efficient removal of tedious inferences such as double-negation elimination and generally reduces the search space.
-A set of example simplification rules are shown in figure \ref{figure:simplification-rules}.
+\paragraph{Simplifications}
+Before each inferred goal is added to proof search, it is simplified, % with a simplification function mapping a goal to a possibly-simpler goal.
+%This allows for efficient removal of 
+removing 
+tedious inferences such as double-negation elimination and generally %reduces 
+reducing 
+the search space.
+Fig. \ref{figure:simplification-rules} gives example simplification rules.
 
-\begin{figure}
+\begin{figure}[t]
 	\centering
 	\begin{mathpar}
-		\inferrule[double-negation]{\phi, \Gamma}{\lnot \lnot \phi, \Gamma}\and
-		\inferrule[conjunction-associative]{\phi \wedge \psi \wedge \pi, \Gamma}{\phi \wedge \left(\psi \wedge \pi\right)}\and
-		\inferrule[disjunction-propagation]{\phi, \Gamma}{\phi \vee \bot, \Gamma}\and
-		\inferrule[reflexivity]{\top, \Gamma}{t = t, \Gamma}\and
+%		\inferrule[double-negation]{\phi, \Gamma}{\lnot \lnot \phi, \Gamma}\and
+%		\inferrule[conjunction-associative]{\phi \wedge \psi \wedge \pi, \Gamma}{\phi \wedge \left(\psi \wedge \pi\right)}\and
+%		\inferrule[disjunction-propagation]{\phi, \Gamma}{\phi \vee \bot, \Gamma}\and
+%		\inferrule[reflexivity]{\top, \Gamma}{t = t, \Gamma}\and
+%		\inferrule[free]{\phi, \Gamma}{\forall x. \phi, \Gamma}
+		\inferrule[double-neg]{\phi, \Gamma}{\lnot \lnot \phi, \Gamma}\and
+		\inferrule[conj-assoc]{\phi \wedge \psi \wedge \pi, \Gamma}{\phi \wedge \left(\psi \wedge \pi\right)}\and
+		\inferrule[disj-prop]{\phi, \Gamma}{\phi \vee \bot, \Gamma}\and
+		\inferrule[refl]{\top, \Gamma}{t = t, \Gamma}\and
 		\inferrule[free]{\phi, \Gamma}{\forall x. \phi, \Gamma}
 	\end{mathpar}
 	\caption{Some simplification rules implemented in \lerna{}. In rule \textsc{free}, \(x\) is free in \(\phi\). Several other rules are implemented.}
 	\label{figure:simplification-rules}
 \end{figure}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Oracle}
 \label{section:oracle}
 One problem with the calculus as described is that proofs can be quite lengthy, even if the goal is relatively trivial.
-To rectify the situation, new goals generated by ongoing proof search are enqueued for attempted proof by an existing \emph{oracle} ATP system, as described in Section \ref{section:Design}.
+To rectify the situation, new goals generated by ongoing proof search are enqueued for attempted proof by an existing \emph{oracle} ATP system, as described in Section \ref{section:Design}. 
+%
+In our prototype implementation we use the mature
+%
+%\subsection{Z3}
+\z3{} SMT solver~\cite{Z3}, which % is an efficient and mature SMT solver, supporting a core propositional logic extended with ``theories'' such as arithmetic and datatypes.
+%It also notably 
+supports quantified first-order logic via a combination of decision procedures for decidable fragments (such as the Bernays-Sch\"onfinkel class of formulae), and heuristic quantifier instantiation routines~\cite{quantifier-instantiation}.
+\z3{} is attractive for this application due to its low startup times and its ability to produce both satisfiable and unsatisfiable results. 
+%
+%In the \lerna{} system, we ran \z3{} as an external program (thus reducing the coupling to any particular ATP, although \z3{} has an API which might improve efficiency) with its Model-Based Quantifier Instantiation heuristic for 20 milliseconds.
 
-\subsection{Z3}
-\z3{}\cite{Z3} is an efficient and mature SMT solver, supporting a core propositional logic extended with ``theories'' such as arithmetic and datatypes.
-It also notably supports first-order logic via a combination of decision procedures for decidable fragments (such as the Bernays-Sch\"onfinkel class of formulae), and heuristic quantifier instantiation routines~\cite{quantifier-instantiation}.
-\z3{} is attractive for this application due to its low startup times and its ability to produce both satisfiable and unsatisfiable results.
-
-In the \lerna{} system, we ran \z3{} as an external program (thus reducing the coupling to any particular ATP, although \z3{} has an API which might improve efficiency) with its Model-Based Quantifier Instantiation heuristic for 20 milliseconds.
+\lerna{} uses \z3{} as an external system (it could be replaced by an alternative ATP), running it with its Model-Based Quantifier Instantiation heuristic for 20 milliseconds. 
+%
 This was chosen as the shortest time in which the oracle can dispatch a reasonable amount of trivial goals (and in fact \z3{} is so strong it dispatches some goals immediately: see Section \ref{section:results}).
-Longer oracle runtimes might produce better performance in future, but for this experiment longer runtimes begin to conflate the performance of the oracle and the performance of the system as a whole.
+Longer oracle runtimes might produce better performance in future, but for this work longer runtimes begin to conflate the performance of the oracle and the performance of the system as a whole.
 This application is unusual for ATP systems --- very short runtimes, and a mix of true and false problem statements.
-Running in this setting also amounts to fuzz-testing: in development of this system a bug was rediscovered in \z3{}\footnote{\url{https://github.com/Z3Prover/z3/issues/2101}} which resulted in non-termination of the prover: happily, the bug was already fixed in a newer version.
+%Running in this setting also amounts to fuzz-testing: in development of this system a bug was rediscovered in \z3{}\footnote{\url{https://github.com/Z3Prover/z3/issues/2101}} which resulted in non-termination of the prover: happily, the bug was already fixed in a newer version.
 
-\subsection{Acting as a Preprocessor}
-\lerna{} as a whole might also be seen as an intelligent preprocessor for existing ATPs in this setting: existing theorem provers are known to be sensitive to small changes in their input~\cite{clausification}, and generally make little attempt to split their input into smaller sub-goals, for parallelism~\cite{parallel} or otherwise.
+\paragraph{Acting as a Preprocessor}
+\lerna{} might also be seen as an intelligent preprocessor for existing ATPs in this setting: existing theorem provers are known to be sensitive to small changes in their input~\cite{clausification}, and generally make little attempt to split their input into smaller sub-goals, for parallelism~\cite{parallel} or otherwise.
 The system can therefore act as an adaptor for any existing ATP, adding parallelism opportunities and ``smoothing out'' sensitivity to input syntax.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Learned Heuristic}
 \label{section:heuristic}
 A suitable heuristic function for the system must predict a value between 0 and 1 for a given formula \(F\), where 0 represents a satisfiable goal and 1 represents unsatsfiability, based on a set of tagged formulae seen in previous proof search.
-Although the data is collected by running the system itself (and therefore might be considered \emph{reinforcement} learning~\cite{reinforcement}), for this approach data collection and learning were considered separately and hence forms a classic supervised-learning problem.
+Although the data is collected by running the system itself and might be considered \emph{reinforcement} learning, for this approach data collection and learning were considered separately and hence forms a classic supervised-learning problem.
 
 \subsection{Data Collection}
 A large dataset of satisfiable and unsatisfiable goals were collected by running the unguided prover on the \mizarlarge{} dataset for 10 seconds.
@@ -272,9 +304,9 @@ Propositional connectives and equality have the obvious representation, while qu
 To produce an input graph from a formula \(F\), the formula is first parsed into an abstract syntax tree.
 Common sub-trees up to \(\alpha\)-equivalence are merged, then the resulting directed acyclic graph has any named-symbol nodes replaced with an opaque, nameless label such as "predicate" or "variable" --- since distinct symbols remain as distinct nodes under this scheme, no information is lost other than the natural-language semantics of the symbol name.
 In practice, undirected graphs improved model performance so the graph is made undirected before encoding node labels as one-hot inputs to produce the final input graphs.
-An example formula's translation is shown in Figure \ref{figure:translation}.
+An example formula's translation is shown in Fig. \ref{figure:translation}.
 
-\begin{figure}
+\begin{figure}[t]
 	\centering
 	\begin{subfigure}{.35\textwidth}
 		\centering
@@ -312,8 +344,7 @@ This approach has the advantage of exposing the network to ``noise'' such as add
 In a typical convolutional network architecture for images~\cite{cnn}, there are a series of filtering stages, followed by a densely-connected neural network.
 Each filtering stage intuitively combines data from local features (via \emph{convolution}), then reduces the dimensions of the image (via \emph{pooling}) for the next stage.
 Graph neural networks have analogous convolution~\cite{gcn} (combining information from neighbouring nodes) and pooling~\cite{top-k-pooling} (merging nodes to reduce the size of the input graph) operators.
-A brief period of experimentation with these operators yielded the following network architecture, shown in Figure \ref{figure:network}.
-It is not claimed that this is the optimal configuration, and no grid search has yet taken place to optimise the network parameters.
+A brief period of experimentation with these operators yielded the following network architecture, shown in Fig. \ref{figure:network}.
 \begin{enumerate}
 	\item Input. a graph \(G\) consisting of one-hot encoded nodes \(N\) and edges \(E\).
 	\item Embedding. Each node is mapped to an embedding vector of size 64 via a trained dense embedding.
@@ -323,7 +354,7 @@ It is not claimed that this is the optimal configuration, and no grid search has
 	\item Fully Connected. A fully-connected hidden layer with rectified linear activation halves the input size.
 	\item Fully Connected/Softmax. A fully-connected final layer outputs two class labels, with softmax activation.
 \end{enumerate}
-
+It is not claimed that this is the optimal configuration, and no grid search has yet taken place to optimise the network parameters. 
 To reduce over-fitting, dropout~\cite{dropout} is applied in convolutional and fully-connected layers, \(p = 0.1\).
 
 \begin{figure}
@@ -371,42 +402,47 @@ The network was trained on commodity desktop hardware with a mid-range GPU~\foot
 	\label{figure:computation}
 \end{figure}
 
-\subsection{Evaluation}
+\subsection{Network Evaluation}
 The network was evaluated on the balanced test set of 200 examples, as described.
 Various metrics for accuracy are shown in Table \ref{table:network-evaluation}.
 While these results are very promising, it should be emphasised that it is unclear how effective a train/test split is in this setting (since similar subgoals may occur in both sets, even with proper data hygiene), and that this network is not attempting to determine the satisfiability of arbitrary formulae, merely those that occur in proof attempts on the \mizarlarge{} dataset.
 The higher precision and lower recall values are likely an artefact of the augmentation process.
 However, even with these caveats, the network performance is surprising and is practically useful for improving proof search in this dataset.
 
-\begin{table}
+\begin{table}[t]
 	\caption{Accuracy metrics for the neural heuristic.}
 	\centering
 	\begin{tabular}{r | c}
 		\textbf{Metric} & \textbf{Score}\\
 		\hline
 		Accuracy & 93.0\%\\
+		Precision&0.990\\	
+		Recall&0.884\\
+		\(F_1\)&0.934\\			
+	\end{tabular}
+	\quad
+	\begin{tabular}{r | c}
+		\textbf{Metric} & \textbf{Score}\\
+		\hline
 		True Positive&99\\
 		True Negative&87\\
-		False Positive&13\\
+		False Positive&13\\		
 		False Negative&1\\
-		Precision&0.990\\
-		Recall&0.884\\
-		\(F_1\)&0.934\\
-	\end{tabular}
+	\end{tabular}	
 	\label{table:network-evaluation}
 \end{table}
-
-\section{Results}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Experimental Results}
 \label{section:results}
 In order to evaluate the effect of heuristic guidance on the existing prover, the prover ran both with and without guidance for 10 seconds on all available CPU cores.
 All results were collected on commodity desktop hardware\footnote{Intel\textsuperscript{\textregistered} Core\textsuperscript{\texttrademark} i7-6700 CPU @ 3.40GHz, 16GB RAM.}.
 
-\subsection{Benchmark Results}
+%\subsection{Benchmark Results}
 Table \ref{table:m2k-results} shows the total number of theorems proved using various configurations of \z3 and \lerna{} on the \mizarsmall{} dataset.
 \z3 ran for a full 10 seconds to establish baseline performance, then as an oracle for 20 milliseconds to determine the number of ``trivial'' problems.
 \lerna{} ran on an identical dataset, first without guidance from the neural heuristic, then with guidance.
 
-\begin{table}
+\begin{table}[t]
 	\caption{Total successful proof attempts on the \mizarsmall{} dataset.}
 	\centering
 	\begin{tabular}{r | c}
@@ -423,57 +459,63 @@ Table \ref{table:m2k-results} shows the total number of theorems proved using va
 Although clearly worse, \lerna{} solves a significantly different set of problems compared to the baseline: 114 problems are uniquely solved by \lerna{}.
 It should be noted that the impressive results reported by the rlCoP system~\cite{rlCoP} are not directly comparable here due to differences in experimental setup.
 
-\section{Conclusions}
-The prototype system successfully implements a theorem prover with a neural heuristic processing the entire proof state, structured as a graph.
-After training on data automatically generated by the prover system, the neural network approach is shown to be practically useful for improving proof search performance.
-A number of approaches (batching, oracle invocations, parallelism) are employed to improve system efficiency.
-While the prototype is not yet a successful state-of-the-art ATP, it has some unique desirable properties, among them simplicity, parallelism, parametricity with respect to calculus/oracle/heuristic, and introspection of proof state.
-The general approach is flexible and presently unexplored.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Future Work}
-The style of theorem prover described opens many new directions for future work and improvements to the system.
-As \lerna{} is a very new system, there is likely much to be gained by simple engineering and tuning: for example, the UCT exploration parameter \(c\) has been left at its theoretical optimum value \(\sqrt{2}\), but it is likely that a higher value will account for neural network inaccuracies and hence improve performance.
-Training on, benchmarking with, and optimising for other datasets (such as the famous TPTP benchmark~\cite{TPTP}) is also left as future work.
 
-\subsection{Proof Search}
+Given the prototype nature of this work, we have included a detailed discussion on future directions. 
+%The style of theorem prover described opens many new directions for future work and improvements to the system.
+As \lerna{} is a very new system, there is likely much to be gained by simple engineering and tuning: for example, the UCT exploration parameter \(c\) has been left at its theoretical optimum value \(\sqrt{2}\), but it is likely that a higher value will account for neural network inaccuracies and hence improve performance.
+Training on, benchmarking with, and optimising for other datasets (such TPTP or SMT-LIB) is also left as future work.
+
+\paragraph{Proof Search}
 \lerna{} is well-suited for long-term proof search attempts in mathematics, such as those employed in the AIM project~\cite{AIM}: search is stable over time and does not produce a combinatorial explosion in the same way that some traditional systems tend to after a short period.
 Additionally, the amount of information (``confidence'') in the system grows over time, as a result of a growing number of oracle invocations and neural network evaluations.
 Proof search can in principle be manually inspected more easily than in saturation-based provers to examine promising subgoals and remove known falsehoods from the search space.
-The authors hope to explore applying the system to this interesting domain.
+The authors hope to explore applying the system to this interesting domain. 
 
-Another future direction for proof search is a principled incomplete mode, in which branches deemed sufficiently uninteresting by the heuristic are pruned, perhaps in response to time or memory constraints as seen in limited resource strategies~\cite{LRS}.
+Another future direction for proof search is a principled incomplete mode where branches deemed sufficiently uninteresting by the heuristic are pruned, perhaps in response to resource constraints as in limited resource strategies~\cite{LRS}.
 This approach, while clearly incomplete, would significantly accelerate proof search in the direction of more promising search within the available resources.
 
-\subsection{Prover Calculus}
-The calculus currently employed is deliberately na\"ive, so much work is planned here.
-In particular, the simplification routines can be improved to remove more trivial sub-formulae.
-While in general the oracles' preprocessing will remove these, they serve as noise for the neural network and might also increase the number of inference steps required to reach a proof.
-As one possible view of this approach is as an intelligent preprocessor (as mentioned in Section \ref{section:oracle}) for an existing efficient ATP, a greater number of aggressive and/or weakening inferences might be included in the calculus.
-For instance, \emph{prenexing} (or conversely \emph{miniscoping}) formulae can have a significant effect on proof search~\cite{clausification} for some theorem provers, so including suitable quantifier-manipulation rules might prove to be a useful extension.
+\paragraph{Prover Calculus}
+The calculus currently employed is deliberately na\"ive and extensions should be explored. 
+In particular, the simplification routines can be improved to remove more trivial sub-formulae as, while in general the oracles' preprocessing will remove these, they serve as noise for the neural network and might also increase the number of inference steps required to reach a proof.
+As one possible view of this approach is as an intelligent preprocessor for an existing ATP, more aggressive and/or weakening inferences might be included in the calculus.
+For instance, \emph{prenexing} (or conversely \emph{miniscoping}) formulae can have a significant effect on proof search for some theorem provers, so including suitable quantifier-manipulation rules might prove to be a useful extension.
 
 Ideas from other refutation-tableaux calculi could well be suitable for this system.
 The authors are attempting to integrate an adapted connection rule from the non-clausal connection calculus~\cite{non-clausal-connections}, as used in nanoCoP~\cite{nanocop}, in order to reduce the number of proof steps required to instantiate universal quantifiers.
 Finally, this prover architecture can support other logics without excessive modification.
-Given that \z3 is already capable of supporting many \emph{theories}, such as arithmetic or datatypes, a many-sorted first order logic such as those described by SMTLIB~\cite{smtlib} or the TFF0 dialect of TPTP~\cite{tff0} seems appropriate.
+Given that \z3 is already capable of supporting many \emph{theories}, such as arithmetic or datatypes, a many-sorted first order logic such as those described by SMTLIB or the TFF0 dialect of TPTP seems appropriate.
 
-\subsection{Oracle}
+\paragraph{Oracle}
 While \z3 is a strong theorem prover in its own right and performs well here, it remains to be seen if it is the best for this application.
-Other ATPs (or counter-example-finding systems) should be tested as it involves minimal engineering effort.
+Other ATPs (or counter-example-finding systems) should be explored. 
 A \emph{portfolio} of several oracle systems working in tandem might also be considered, although of course this will eventually retard proof search linearly in the number of systems present.
 Reducing the number of oracle invocations is another area for optimisation.
 Currently, the system calls an oracle for every new sub-goal generated.
 It seems unlikely that the sub-goal is materially easier to dispatch than its parent (especially in the case of propositional inferences that do not split the goal), so heuristically or probabilistically removing such subgoals from the oracle's queue is a possible area for improvement.
 \lerna{} does not currently use any information from the oracle beyond its status: using auxiliary information such as satisfying models or unused formulae could well aid proof search.
 
-\subsection{Machine-Learned Heuristic}
+\paragraph{Machine-Learned Heuristic}
 Many other graph-based neural architectures are possible.
 PyTorch Geometric alone currently includes nearly 40 other graph-specific neural layers pre-programmed from the literature\footnote{\url{https://rusty1s.github.io/pytorch_geometric/build/html/modules/nn.html}}.
 Neural models specifically for theorem proving are relatively under-studied.
 To combat this, data used for this paper will be published in the near future so that the machine-learning community can improve upon our simple models.
 Different approaches to formula-to-graph translation, symbol embeddings, data augmentation, and model integration may also be explored.
-\section{Acknowledgements}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Conclusions}
+The introduced prototype \lerna{} system successfully implements a theorem prover with a neural heuristic processing the entire proof state, structured as a graph.
+After training on data automatically generated by the prover system, the neural network approach is shown to be practically useful for improving proof search performance.
+A number of approaches (batching, oracle invocations, parallelism) are employed to improve system efficiency.
+While the prototype is not yet a successful state-of-the-art ATP, it has some unique desirable properties, among them simplicity, parallelism, parametricity with respect to calculus/oracle/heuristic, and introspection of proof state.
+The general approach is flexible and presently unexplored.
+
+\paragraph{Acknowledgements}
 The authors wish to thank Josef Urban and his group in \v{C}VUT, Prague for their help and encouragement with early iterations of this work, and for supplying the Mizar dataset used in this paper.
-\clearpage
+%\clearpage
+
 \bibliographystyle{splncs04}
 \bibliography{references}
 \end{document}
