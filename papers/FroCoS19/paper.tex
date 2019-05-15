@@ -1,4 +1,5 @@
 \documentclass{llncs}
+\usepackage{amsmath}
 \usepackage{graphicx}
 \usepackage{hyperref}
 \usepackage{mathpartir}
@@ -67,7 +68,7 @@ where $x$ is a variable, $f$ is a $n$-ary function symbol, $c$ is a constant, an
 %Universal or existential quantifiers \(\forall x. \phi, \exists x. \phi\).
 
 
-\paragraph{Modern Automatic Theorem Provers}
+\paragraph{Automatic Theorem Provers}
 An automated theorem prover (ATP) is a system able to automatically establish whether a formula (in first-order logic) is \emph{satisfiable} or \emph{unsatisfiable}; although, given the undecidability of this problem, ATPs may also return \emph{unknown}. Both saturation-based provers (e.g. E~\cite{E}, iProver~\cite{iProver}, Vampire~\cite{Vampire}) and SMT solvers (e.g. CVC4~\cite{CVC4} and Z3~\cite{Z3}) utilise efficient proof calculi combined with highly-configurable search routines in order to explore a large search space efficiently.
 %Generally, the search space in these systems slowly at first, then increases rapidly, leading to the maxim that a proof is typically found quickly or not at all.
 %Portfolio modes~\cite{portfolio} are therefore employed in order to achieve good performance on a large set of practically-useful problems, such as those found in TPTP~\cite{TPTP}.
@@ -79,7 +80,7 @@ This has led to the application of machine-learning techniques, with the eventua
 Previous work has focussed on premise selection~\cite{DeepMath,MaSh,MaLARea,formula-graph}, static strategy selection~\cite{Bridge,MaLeS,E-MaLeS}, dynamic (run-time) strategy selection~\cite{dynamic-strategy-priority} and more recently, direct proof guidance~\cite{MaLeCoP,FEMaLeCoP,rlCoP,ENIGMA,DNGPS}.
 Proof guidance typically involves a form of machine-learned \emph{heuristic} which biases proof search in some way, allowing the prover to avoid parts of the search space deemed uninteresting by the heuristic.
 
-Much previous work on integrating machine-learned heuristics into automatic theorem provers has relied on hand-engineered features~\cite{MaLeCoP,FEMaLeCoP,rlCoP} or other embedding methods~\cite{ENIGMA}, which have the advantage of simplicity and relative efficiency, but do not encode all information available.
+Work on integrating machine-learned heuristics into automatic theorem provers has relied on hand-engineered features~\cite{MaLeCoP,FEMaLeCoP,rlCoP} or other embedding methods~\cite{ENIGMA}, which have the advantage of simplicity and relative efficiency, but do not encode all information available.
 By contrast, a neural method which takes into account all information (as utilised in this work) should allow for greater precision in proof guidance systems.
 Deep Network Guided Proof Search (DNGPS)~\cite{DNGPS} is an example of previous work in this area, which integrated a deep neural guidance system into the saturation-based prover E~\cite{E}.
 DNGPS achieved successful results, but suffered from the latency introduced into the system by the neural heuristic: despite processing only a reduced amount of the available proof state, the reduction in throughput necessitated a two-phase approach in which the prover was neurally-guided in the first phase, before falling back to traditional proof search in the second.
@@ -145,13 +146,15 @@ This may mark goals as (un-)satisfiable, at which point no further exploration i
 Search is biased by heuristic evaluation.
 The neural heuristic function (see Section \ref{section:heuristic}) evaluates each goal and assigns a score corresponding to whether the network believes that the goal is satisfiable or unsatisfiable.
 In order to balance exploitation of promising directions and exploration of all parts of the search space, a principled UCT-based search algorithm is used, as in MonteCoP~\cite{MonteCoP}.
-At each sub-goal $g$, the prover chooses the inference $i$ and subgoal $sg$ with the maximal expression
+At each sub-goal $g$, the prover chooses the inference \(i\) with subgoals \(s\) according to
 \[
-{\sf max}_{i \in {\sf inferences}(g)}  	{\sf min}_{sg \in {\sf subgoals}(i)} \left ( {\sf score}(sg) + c~\sqrt{\frac{\ln {\sf visits}(g)}{{\sf visits}(sg)}} \right )  
+	\max_{i \in g}\left[
+		\underbrace{\min_{s \in i}\left(\textsf{score}(s)\right)}_\text{exploitation} +~
+		c \times \underbrace{\sqrt{\frac{\ln\textsf{visits}\left(g\right)}{\textsf{visits}\left(i\right)}}}_\text{exploration}
+	\right]
 \]
-where ${\sf score}$ gives the heuristic score, ${\sf visits}$ gives the total number of visits to that node so far, and \(c\) is the exploration parameter (theoretically \(\sqrt{2}\)). This prioritises subgoals considered satisfiable by the heuristic as establishing satisfiability makes the subgoals redundancy, allowing them to be pruned.
-
-
+where ${\sf score}$ gives the heuristic score, ${\sf visits}$ gives the total number of visits to that node so far, and \(c\) is the exploration parameter (theoretically \(\sqrt{2}\)).
+The sub-goal with the minimal score is then selected: this prioritises subgoals considered possibly satisfiable by the heuristic, as satisfiable subgoals allows large parts of the search space to be pruned.
 
 \subsection{Architecture and Prototype Implementation}
 The system aims to consume all available CPU and GPU resources as efficiently as possible.
@@ -170,7 +173,7 @@ As information flows backwards from these processes, the search process updates 
 
 The prototype implementation (minus the heuristic) %was built in the Rust programming language.% was chosen to implement the main prover , for its memory and thread-safety guarantees, as well as its support for managing memory allocation and algebraic datatypes.
 %The implementation 
-is currently just under 3,000 lines of Rust, not including \z3{}, the TPTP format parser or the implementation of perfect sharing.
+is currently just under 3,000 lines of Rust, not including the TPTP format parser or the implementation of perfect sharing.
 Python 3 was used for the heuristic due to the large number of libraries available for neural network implementation in Python.
 The heuristic is implemented as a server, communicating with the main prover via a TCP socket.
 In principle this allows for the heuristic to be a shared resource with a centralised heuristic server, or a load-balanced cluster.
@@ -456,7 +459,9 @@ Table \ref{table:m2k-results} shows the total number of theorems proved using va
 	\label{table:m2k-results}
 \end{table}
 %
-With neural guidance \lerna{} was able to solve an additional 54 problems and overall \lerna{} was shown to be complementary to \z3{}, proving 114 problems that \z3{} was unable to solve on its own. Conversely, \z3{} was able to solve more problems in total, which unsurprising given the maturity of the tool. These results show that \lerna{} is able to learn from experience and complement an existing ATP.
+With neural guidance \lerna{} was able to solve an additional 54 problems and overall \lerna{} was shown to be complementary to \z3{}, proving 114 problems that \z3{} was unable to solve on its own, and 40 that neither unguided \lerna{} nor \z3{} could solve.
+Conversely, \z3{} was able to solve more problems in total, which is unsurprising given the maturity of the tool.
+These results show that \lerna{} is able to learn from experience and complement an existing ATP.
 
 %Although clearly worse, \lerna{} solves a significantly different set of problems compared to the baseline: 114 problems are uniquely solved by \lerna{}.
 %It should be noted that the impressive results reported by the rlCoP system~\cite{rlCoP} are not directly comparable here due to differences in experimental setup.
