@@ -145,11 +145,12 @@ This may mark goals as (un-)satisfiable, at which point no further exploration i
 Search is biased by heuristic evaluation.
 The neural heuristic function (see Section \ref{section:heuristic}) evaluates each goal and assigns a score corresponding to whether the network believes that the goal is satisfiable or unsatisfiable.
 In order to balance exploitation of promising directions and exploration of all parts of the search space, a principled UCT-based search algorithm is used, as in MonteCoP~\cite{MonteCoP}.
-At each sub-goal, the prover chooses the inference maximising the expression
+At each sub-goal $g$, the prover chooses the inference $i$ and subgoal $sg$ with the maximal expression
 \[
-	s + c\sqrt{\frac{\ln N}{n}}
+{\sf max}_{i \in {\sf inferences}(g)}  	{\sf min}_{sg \in {\sf subgoals}(i)} \left ( {\sf score}(sg) + c~\sqrt{\frac{\ln {\sf visits}(g)}{{\sf visits}(sg)}} \right )  
 \]
-where \(s\) is the score associated with the inference, \(c\) is the exploration parameter (theoretically \(\sqrt{2}\)), \(N\) is the number of visits to the current node, and \(n\) is the number of visits to the child. An inference's score is the minimum of their sub-goals' scores, and non-leaf sub-goal's score is the maximum of their inference's scores. The score \(s\) of a goal node is the score assigned to it by the heuristic function. After an inference is selected, the least-promising sub-goal is selected, and the selection process continues until a leaf node is reached.
+where ${\sf score}$ gives the heuristic score, ${\sf visits}$ gives the total number of visits to that node so far, and \(c\) is the exploration parameter (theoretically \(\sqrt{2}\)). This prioritises subgoals considered satisfiable by the heuristic as establishing satisfiability makes the subgoals redundancy, allowing them to be pruned.
+
 
 
 \subsection{Architecture and Prototype Implementation}
@@ -432,14 +433,15 @@ However, even with these caveats, the network performance is surprising and is p
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Experimental Results}
 \label{section:results}
-In order to evaluate the effect of heuristic guidance on the existing prover, the prover ran both with and without guidance for 10 seconds on all available CPU cores.
+
+To show that neural guidance can improve the performance of \lerna{} the system was run with and without guidance for 10 seconds on all available CPU cores.
 All results were collected on commodity desktop hardware\footnote{Intel\textsuperscript{\textregistered} Core\textsuperscript{\texttrademark} i7-6700 CPU @ 3.40GHz, 16GB RAM.}.
 
 %\subsection{Benchmark Results}
 Table \ref{table:m2k-results} shows the total number of theorems proved using various configurations of \z3 and \lerna{} on the \mizarsmall{} dataset.
 \z3 ran for a full 10 seconds to establish baseline performance, then as an oracle for 20 milliseconds to determine the number of ``trivial'' problems.
 \lerna{} ran on an identical dataset, first without guidance from the neural heuristic, then with guidance.
-
+%
 \begin{table}[t]
 	\caption{Total successful proof attempts on the \mizarsmall{} dataset.}
 	\centering
@@ -453,9 +455,11 @@ Table \ref{table:m2k-results} shows the total number of theorems proved using va
 	\end{tabular}
 	\label{table:m2k-results}
 \end{table}
+%
+With neural guidance \lerna{} was able to solve an additional 54 problems and overall \lerna{} was shown to be complementary to \z3{}, proving 114 problems that \z3{} was unable to solve on its own. Conversely, \z3{} was able to solve more problems in total, which unsurprising given the maturity of the tool. These results show that \lerna{} is able to learn from experience and complement an existing ATP.
 
-Although clearly worse, \lerna{} solves a significantly different set of problems compared to the baseline: 114 problems are uniquely solved by \lerna{}.
-It should be noted that the impressive results reported by the rlCoP system~\cite{rlCoP} are not directly comparable here due to differences in experimental setup.
+%Although clearly worse, \lerna{} solves a significantly different set of problems compared to the baseline: 114 problems are uniquely solved by \lerna{}.
+%It should be noted that the impressive results reported by the rlCoP system~\cite{rlCoP} are not directly comparable here due to differences in experimental setup.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
