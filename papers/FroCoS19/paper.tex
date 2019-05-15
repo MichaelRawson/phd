@@ -344,7 +344,7 @@ Each filtering stage intuitively combines data from local features (via \emph{co
 Graph neural networks have analogous convolution~\cite{gcn} (combining information from neighbouring nodes) and pooling~\cite{top-k-pooling} (merging nodes to reduce the size of the input graph) operators.
 A brief period of experimentation with these operators yielded the following network architecture, shown in Fig. \ref{figure:network}.
 \begin{enumerate}
-	\item Input. a graph \(G\) consisting of one-hot encoded nodes \(N\) and edges \(E\).
+	\item Input. A graph \(G\) consisting of one-hot encoded nodes \(N\) and edges \(E\).
 	\item Embedding. Each node is mapped to an embedding vector of size 64 via a trained dense embedding.
 	\item Initial Convolution. 4 convolution layers are applied to the graph with rectified linear activations. This yields a graph of the same size, but with information exchanged between nodes.
 	\item Convolution/Pooling. Similar convolution layers are then passed through \emph{top-\(k\)}~\cite{top-k-pooling} layers, retaining \(k = 60\%\) of the graph's nodes. This is repeated 3 times, reducing the size of the graph considerably.
@@ -352,7 +352,7 @@ A brief period of experimentation with these operators yielded the following net
 	\item Fully Connected. A fully-connected hidden layer with rectified linear activation halves the input size.
 	\item Fully Connected/Softmax. A fully-connected final layer outputs two class labels, with softmax activation.
 \end{enumerate}
-It is not claimed that this is the optimal configuration, and no grid search has yet taken place to optimise the network parameters. 
+It is not claimed that this is the optimal configuration, and no grid search has yet taken place to optimise the network architecture or hyper-parameters. 
 To reduce over-fitting, dropout~\cite{dropout} is applied in convolutional and fully-connected layers, \(p = 0.1\).
 
 \begin{figure}
