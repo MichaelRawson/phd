@@ -122,8 +122,8 @@ In this context, proof state is small (only the current branch), evaluation of s
 \subsection{Search}
 In the calculus (see Section \ref{section:Calculus}) for this prover, there are two branching factors: each goal has a set of possible inferences, and each inference contains a set of possible sub-goals.
 To prove a goal, at least one inference must be proved.
-To prove an inference, all the inferences' sub-goals must be proved.
-A simple optimisation observation is that sub-goals might well be shared between inferences from all over the search space, so search becomes a directed acyclic graph, alternating between goals and inferences (illustrated in Fig.~\ref{fig:search}).
+To prove an inference, all the inferences' sub-goals must be proved (e.g. shown to be unsatisfiable).
+A simple optimisation is that sub-goals may be shared between inferences, so search becomes a directed acyclic graph, alternating between goals and inferences (illustrated in Fig.~\ref{fig:search}).
 
 %\begin{figure}[t]
 \begin{wrapfigure}[12]{r}{0.5\textwidth} 
@@ -149,10 +149,8 @@ At each sub-goal, the prover chooses the inference maximising the expression
 \[
 	s + c\sqrt{\frac{\ln N}{n}}
 \]
-where \(s\) is the score associated with the inference, \(c\) is the exploration parameter (theoretically \(\sqrt{2}\)), \(N\) is the number of visits to the current node, and \(n\) is the number of visits to the child.
-After an inference is selected, the least-promising sub-goal is selected, and the selection process continues until a leaf node is reached.
-The score \(s\) of a leaf node is the score assigned to it by the heuristic function.
-An inference's score is the minimum of their sub-goals' scores, and non-leaf sub-goal's score is the maximum of their inference's scores.
+where \(s\) is the score associated with the inference, \(c\) is the exploration parameter (theoretically \(\sqrt{2}\)), \(N\) is the number of visits to the current node, and \(n\) is the number of visits to the child. An inference's score is the minimum of their sub-goals' scores, and non-leaf sub-goal's score is the maximum of their inference's scores. The score \(s\) of a goal node is the score assigned to it by the heuristic function. After an inference is selected, the least-promising sub-goal is selected, and the selection process continues until a leaf node is reached.
+
 
 \subsection{Architecture and Prototype Implementation}
 The system aims to consume all available CPU and GPU resources as efficiently as possible.
