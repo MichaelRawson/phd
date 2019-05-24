@@ -39,7 +39,7 @@ def read_strats(data_file_names):
 
 if __name__ == "__main__":
   
-  solvers = read_strats(["others.csv","info.csv"])
+  solvers = read_strats(["others.csv","info_no_baseline.csv"])
   if "solver_configuration" in solvers:
     del solvers["solver_configuration"]
   

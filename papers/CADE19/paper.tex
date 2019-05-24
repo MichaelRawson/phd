@@ -432,14 +432,15 @@ Only converging with frequency 50 solved \texttt{SET345-6} and only decaying wit
 Total number of problems solved compared to other solvers.
 }
 	\centering
-	\begin{tabular}{l l l}
-	Solver~~ & Total solved~~~ & Uniquely solved \\
+	\begin{tabular}{l l l l}
+	Solver~~ & Total solved~~~ & \multicolumn{2}{c}{Uniquely solved}  \\
+	& & All ~~~~~& Excluding Vampire (old) \\
 	\hline
-	Vampire (old)	& 13,057 & 0\\
-	Vampire (new)   & 13,191 & 54\\
-	E 		& 10,845 & 190\\
-	iProver		& 8,143 & 215\\
-	CVC4		& 9,354 & 501\\
+	Vampire (old)	& 13,057 & 0 & -\\
+	Vampire (new)   & 13,191 & 54 & 1030\\
+	E 		& 10,845 & 190 & 190\\
+	iProver		& 8,143 & 215 & 215\\
+	CVC4		& 9,354 & 501 & 502\\
 	\end{tabular}
 	\label{tab:other}
 \end{table}
