@@ -3,6 +3,8 @@
 \usepackage[caption=false]{subfig}
 \usepackage{amssymb}
 \usepackage{amsmath}
+\usepackage{afterpage}
+\usepackage{pdflscape}
 \usepackage{romannum}
 
 \title{Old or Heavy?\\Decaying Gracefully with Age/Weight Shapes.}
@@ -318,11 +320,50 @@ An alternative approach might be to use an age/weight probability, rather than a
 Two new options are implemented: \texttt{--age\_weight\_ratio\_shape} can take the values \emph{constant}, \emph{decay}, or \emph{converge} and selects one of the above shapes; and \texttt{--age\_weight\_ratio\_shape\_frequency} specifies the frequency (rate) or convergence/decay (default is 100). These are used with the existing \texttt{--age\_weight\_ratio} option (default 1:1) to give a number of new option combinations, which can be used in conjunction with Vampire's portfolio mode pending integration into the strategy schedules.
 This version of the prover is currently in a separate branch in the main Vampire source repository\footnote{\texttt{https://github.com/vprover/vampire/tree/awr-shapes}}.
 Another option, \texttt{--age\_weight\_ratio\_b} is implemented (default 1:1), controlling the initial AWR value of \emph{converge} or the final AWR value of \emph{decay}.
-This parameter was not evaluated for reasons of computational complexity.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Experimental Evaluation}
 \label{sec:experiments}
+
+\afterpage{
+\begin{landscape}
+\begin{table}[p]
+\caption{
+	Number of problems solved (top) and unique problems solved (bottom) by various configurations varying start/end AWR values, AWR shape, and AWR frequency.
+	Bold numbers indicate the best result within a given shape.
+}
+\label{tab:short:runs}
+\centering
+\begin{tabular}{l|l|lllll|lllll|lllll|lllll}
+	& & \multicolumn{5}{|c}{\texttt{converge from 1:1}} & \multicolumn{5}{|c}{\texttt{decay to 1:1}} & \multicolumn{5}{|c}{\texttt{converge from 1:4}} & \multicolumn{5}{|c}{\texttt{decay to 1:4}}\\  
+	AWR & \texttt{constant} & \multicolumn{5}{|c|}{Frequency} & \multicolumn{5}{|c}{Frequency} & \multicolumn{5}{|c}{Frequency} & \multicolumn{5}{|c}{Frequency}\\  
+&
+& 1 & 10 & 100 & 1000 & Union
+& 1 & 10 & 100 & 1000 & Union
+& 1 & 10 & 100 & 1000 & Union
+& 1 & 10 & 100 & 1000 & Union
+\\
+\hline
+\multicolumn{20}{c}{Problems Solved} \\ \hline
+10:1		& 7967 & 7972 & 7976 & 8050 & 8245 & \emph{8372} & 8448 & 8441 & 8380 & 8169 & \emph{8614} & 7983 & 7990 & 8094 & 8323 & \emph{8485} & 8579 & 8574 & 8493 & 8272 & \emph{8797}\\
+1:10		& 8575 & 8565 & \textbf{8578} & 8550 & 8489 & \emph{8778} & 8458 & 8456 & 8484 & 8268 & \emph{8787} & 8575 & \textbf{8584} & 8582 & 8535 & \emph{8729} & 8584 & 8574 & 8590 & 8608 & \emph{8764}\\
+1:100	        & 8079 & 8084 & 8079 & 8039 & 8279 & \emph{8560} & 8454 & 8484 & 8537 & \textbf{8636} & \emph{8907} & 8088 & 8084 & 8071 & 8216 & \emph{8399} & 8572 & 8584 & \textbf{8615} & 8592 & \emph{8855}\\
+1:1000     	& 7276 & 7279 & 7297 & 7418 & 8133 & \emph{8379} & 8470 & 8492 & 8492 & 8473 & \emph{8873} & 7283 & 7300 & 7364 & 7927 & \emph{8076} & 8567 & 8567 & 8566 & 8446 & \emph{8830}\\
+\hline
+Union           & \emph{9019} & \emph{9028} & \emph{9016} & \emph{8981} & \emph{8871} & \emph{9194} & \emph{8572} & \emph{8674} & \emph{8725} & \emph{8978} & \emph{9048} & \emph{9038} & \emph{9038} & \emph{9016} & \emph{8967} & \emph{9180} & \emph{8697} & \emph{8759} & \emph{8800} & \emph{8927} & \emph{9026}\\
+\hline
+\hline
+\multicolumn{20}{c}{Uniquely Solved} \\ \hline
+10:1 & 1 & 2 & 1 & 1 & \textbf{6} & \emph{10} & 0 & 0 & 0 & 2 & \emph{2} & 1 & 0 & 0 & 1 & \emph{2} & 0 & 0 & 2 & \textbf{4} & \emph{6}\\
+1:10 & 0 & 1 & 0 & 0 & 1 & \emph{2} & 0 & 0 & 0 & \textbf{6} & \emph{6} & 0 & 1 & 0 & 0 & \emph{1} & 0 & 0 & 0 & 0 & \emph{0}\\
+1:100 & 1 & 0 & 0 & 5 & 4 & \emph{9} & 2 & 0 & 3 & 3 & \emph{8} & 0 & 0 & 0 & 2 & \emph{2} & 0 & 1 & 1 & 0 & \emph{2}\\
+1:1000 & 0 & 0 & 0 & 0 & 1 & \emph{1} & 2 & 0 & 0 & 2 & \emph{4} & 0 & 1 & \textbf{3} & \textbf{3} & \emph{7} & 0 & 0 & 0 & 0 & \emph{0}\\
+\hline
+Union & \emph{2} & \emph{3} & \emph{1} & \emph{6} & \emph{12} & \emph{22} & \emph{4} & \emph{0} & \emph{3} & \emph{13} & \emph{20} & \emph{1} & \emph{2} & \emph{3} & \emph{6} & \emph{12} & \emph{0} & \emph{1} & \emph{3} & \emph{4} & \emph{8}\\
+\end{tabular}
+\end{table}
+\end{landscape}
+}
 
 Two experiments evaluate the new techniques.
 The first compares the various options attempting to draw some conclusions about which option values work well together. The second looks at how useful the new options are in the context of portfolio solving. Both experiments use the TPTP (version 7.1.0) benchmark~\cite{tptp} and were run on StarExec \cite{starexec}.
@@ -330,50 +371,14 @@ The first compares the various options attempting to draw some conclusions about
 %%%%%%%%%%%%%%%%%%%%%%
 \subsection{Comparing New Options}
 
-
-\begin{table}[t]
-\caption{
-	Number of problems solved (top) and unique problems solved (bottom) by various configurations varying AWR, AWR shape, and AWR frequency.
-	Bold numbers indicate the best result within a given shape.
-}
-\label{tab:short:runs}
-\centering
-\begin{tabular}{l|l|lllll|lllll}
-	& & \multicolumn{5}{|c}{\texttt{converge}} & \multicolumn{5}{|c}{\texttt{decay}}\\  
-AWR & \texttt{constant} & \multicolumn{5}{|c|}{Frequency} & \multicolumn{5}{|c}{Frequency}\\  
-&& 1 & 10 & 100 & 1000 & Union & 1 & 10 & 100 & 1000 & Union\\
-\hline
-\multicolumn{10}{c}{Problems Solved} \\ \hline
-10:1		& 7967 & 7972 & 7976 & 8050 & 8245 & \emph{8372} & 8448 & 8441 & 8380 & 8169 & \emph{8614}\\
-1:10		& 8575 & 8565 & \textbf{8578} & 8550 & 8489 & \emph{8778} & 8458 & 8456 & 8484 & 8268 & \emph{8787}\\
-1:100	        & 8079 & 8084 & 8079 & 8039 & 8279 & \emph{8560} & 8454 & 8484 & 8537 & \textbf{8636} & \emph{8907}\\
-1:1000     	& 7276 & 7279 & 7297 & 7418 & 8133 & \emph{8379} & 8470 & 8492 & 8492 & 8473 & \emph{8873}\\
-\hline
-Union           & \emph{9019} & \emph{9028} & \emph{9016} & \emph{8981} & \emph{8871} & \emph{9194} & \emph{8572} & \emph{8674} & \emph{8725} & \emph{8978} & \emph{9048}\\
-\hline
-\hline
-\multicolumn{10}{c}{Uniquely Solved} \\ \hline
-10:1		& 1 & 3 & 2 & 3 & 8 & \emph{16} & 0 & 1 & 2 & 4 & \emph{7}\\
-1:10		& 1 & 3 & 2 & 1 & 5 & \emph{11} & 0 & 1 & 0 & 7 & \emph{8}\\
-1:100	        & 1 & 2 & 2 & 7 & \textbf{9} & \emph{20} & 2 & 0 & 3 & 9 & \emph{14}\\
-1:1000	        & 1 & 2 & 0 & 0 & 3 & \emph{5} & 2 & 0 & 0 & \textbf{12} & \emph{14}\\
-\hline
-Union           & \emph{4} & \emph{10} & \emph{6} & \emph{11} & \emph{25} & \emph{52} & \emph{4} & \emph{2} & \emph{5} & \emph{32} & \emph{43}\\ 
-\end{tabular}
-\end{table}
-
-Vampire ran in default mode (with the \texttt{discount} saturation algorithm) for 10s whilst varying  \texttt{age\_weight\_ratio} and \texttt{age\_weight\_ratio\_shape\_frequency} for both new values of \texttt{age\_weight\_ratio\_shape}.
-Constant AWR values also ran as a baseline. 
+Vampire ran in default mode (with the \texttt{discount} saturation algorithm) for 10s whilst varying  \texttt{age\_weight\_ratio} and \texttt{age\_weight\_ratio\_shape\_frequency} for several AWR shapes: constant, converging from 1:1, decaying to 1:1, converging from 1:4 and decaying from 1:4.
 
 Results are given in Table~\ref{tab:short:runs}.
 The results for the different shapes are grouped into columns and then by frequency with rows giving results per AWR value.
 The total number of problems solved and those solved uniquely are also reported.
-
-In all cases, for a given start AWR value, varying the AWR over time outperformed keeping it constant. As the new strategies always include some reasoning using \verb|1:1| AWR this suggests that all benefit from \emph{some} fair reasoning during proof search and some biased reasoning. 
 The best combination of options overall was decaying from an initial age/weight of 1:100 with frequency 1000.
-However, in general, strategies that converged performed better than those that decayed, both in terms of total problems solved and in terms of unique solutions. 
 Longer frequencies tended to do better, suggesting that more time at the intermediate AWR values is preferable. 
-In total, 28 out of a total of 36 strategies contributed some unique solutions. This shows that these new options are complementary in general.
+Unique solutions are distributed well in general, showing that the new options are complementary.
 
 %%%%%%%%%%%%%%%%%%%%%%
 \subsection{Contribution to Portfolio}
@@ -422,6 +427,7 @@ Note that the CASC-J9 portfolio mode contains techniques completely unrelated to
 
 Vampire first ran to establish baseline performance in the given portfolio mode on all problems in TPTP, with a wallclock time limit of 300 seconds.
 New options were applied on top of the portfolio mode options, using the existing AWR values in the various strategies as the starting point.
+Three shapes are employed: constant (baseline), converging from 1:1 and decaying to 1:1.
 The purpose is to gauge what impact adding such options to a new portfolio mode could have.
 In this experiment the aim was to find new solved problems and identify new strategies that could be added to a portfolio mode.
 Therefore, it makes sense to consider the union of all experiments.
