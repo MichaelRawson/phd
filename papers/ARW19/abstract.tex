@@ -1,0 +1,87 @@
+\documentclass[twocolumn,a4paper,10pt]{article}
+\usepackage{tcolorbox}
+\newcommand{\vampire}{\textsc{Vampire}}
+\usepackage{arw19}
+\title{Reinforcement-Learned Input for Saturation Provers}
+\institute{University of Manchester, UK}
+\author{Michael Rawson \and Giles Reger}
+\institute{University of Manchester, UK}
+\abstract{
+	Many of today's best-performing automatic theorem provers (ATPs) for first-order logic rely on \emph{saturation} algorithms.
+	However, to date the most successful work on applying machine-learned guidance to ATPs relies on tableaux methods, as these are friendlier toward machine learning algorithms.
+	We describe a reinforcement-learning system which selectively infers new clauses from an input problem.
+	The system (in progress) is rewarded if generated clauses are subsequently used by the first-order saturation prover \vampire{} in a proof.
+	In this way, the system learns to generate new clauses which are important in the proof search, but might otherwise not be selected for some time in Vampire's proof search algorithm.
+	The system is implemented via \(Q\)-learning, with a graph neural net processing the structure of the clause set acting as an approximator.
+}
+\begin{document}
+\maketitle{}
+\section{Saturation Provers}
+Saturation-based ATPs such as \vampire{}~\cite{vampire} utilise an algorithm which attempts to produce a \emph{saturated} set of first-order clauses from their input: that is, clauses closed under all possible inferences in their calculus (usually ordered resolution and superposition).
+If the empty clause is found, then this witnesses refutation and a proof may be given.
+Conversely, if a saturated set is produced, then the input is satisfiable and therefore not a theorem.
+On hard problems, neither case will occur and the prover will diverge and continue to generate a very large set of clauses until either time or memory runs out.
+
+This approach lends itself to efficiency, but it is inherently unguided and ill-conditioned with respect to the input.
+In \vampire{} and other similar ATP systems, a number of options and manually-programmed heuristics are available in order to try and delay divergence or find a proof faster on certain problem classes: these are made more useful by \emph{portfolio modes}~\cite{portfolio} in which many combinations of options are run in sequence in order to ameliorate the brittle performance of the underlying prover.
+Such provers have accumulated several pieces of experimentally-validated ``folklore''~\cite{slowly-growing,fewest-children}, notably
+\begin{tcolorbox}
+	\centering
+	\emph{``There is (at least) one clause, which, once found, significantly accelerates finding a proof.''}
+\end{tcolorbox}
+\noindent
+A system which learns to find such a clause early would therefore be very useful.
+
+\section{Guidance for ATP systems}
+The general idea of guiding ATP systems with a machine-learned heuristic is hardly novel: experiments with premise selection~\cite{premise-selection} and internal guidance of tableau-based provers~\cite{rlcop} have produced successful results.
+However, guiding saturation-based theorem provers has proved more difficult: there is a tradeoff between learning power~\cite{dngps} and throughput~\cite{enigma}: the better the heuristic, the more computationally expensive it is and therefore the greater the impact on prover throughput.
+
+The system described falls somewhere between premise selection and internal guidance: while it can select clauses, it can also perform inferences which may help proof search directly (even acting as an poor man's theorem prover in its own right).
+However, it does not affect internal proof search routines and therefore does not impact prover throughput.
+
+\section{Reinforcement Learning Clausal Search}
+Reinforcement learning aims to produce agents which learn to perform actions in an environment while maximising a reward function~\cite{reinforcement}.
+Theorem proving with clauses can be viewed as performing actions (generating inferences) in an environment (the current clause set), aiming to find a reward (the empty clause).
+In principle, this would be a good way to build a learning theorem prover in its own right.
+However, this approach has a few problems:
+\begin{enumerate}
+	\item\label{problem:sparse-reward} The reward function here is very sparse, with only a single reward at the end of proof search.
+	\item\label{problem:deep-proofs} Proofs may be very deep, which an agent at the start of its training may not be able to find in reasonable time.
+	\item\label{problem:large-space} The space of all possible inferences with all available clauses is very large, particularly in large knowledge bases.
+\end{enumerate}
+In order to make this approach more friendly to reinforcement learning, a few modifications are introduced.
+An existing ATP system is employed after a fixed number of steps on the modified clause set: if the existing ATP can prove the modified problem making use of the generated clauses, a reward is applied.
+This helps with issues (\ref{problem:sparse-reward}) and (\ref{problem:deep-proofs}).
+
+To reduce the number of possible inferences (\ref{problem:large-space}), the system is allowed to select which clauses from the input it wishes to use in generating inferences.
+We therefore partition the system into two disjoint clause sets:
+\begin{description}
+	\item\emph{selected}: initially empty, the set the system has selected
+	\item\emph{available}: input clauses, and inferences from \emph{selected}
+\end{description}
+
+\section{System Description}
+The system first uses the \vampire{} ATP to clausify an input problem, obtaining a set of input clauses --- those related to the conjecture are tracked and marked as such to enable the system to be goal-directed if it chooses.
+Any other reasonable clausifier could be used here.
+
+Then, the system is allowed to choose one clause at a time from \emph{available} and move it to \emph{selected}: any inferences from the new clause with others in \emph{selected} are then added to \emph{available}.
+The agent's action-selection policy may be slightly randomised (e.g. \(\epsilon\)-greedy or Boltzmann selection~\cite{random-action}): in training this gives an exploration effect, in testing this allows for multiple distinct clause sets to be produced: multiple proof attempts can then be run in parallel.
+
+After a fixed number of clause selections, the process is halted and \vampire{} runs in its default mode for a short time on all the original clauses, plus the generated clauses in \emph{selected}.
+Clauses are ordered in such a way that \vampire{} prefers those in \emph{selected} before those in \emph{available}.
+If clauses in \emph{selected} are used in proof search, a reward signal is propagated, and the agent may learn from its experience.
+A mild punishment signal is propagated for clauses that were selected but not used.
+
+The particular reinforcement algorithm used presently is \(Q\)-learning~\cite{q-learning}, with a graph convolutional network~\cite{gcn} applied to the entire clause set's structure as a \(Q\)-function approximator.
+
+\section{Future Work}
+As well as completing the implementation and evaluation of the system, there are several possible directions for future work:
+\begin{itemize}
+	\item Different (neural) function approximators. The existing neural architecture is known to perform well on similar problems, but there is much to explore here.
+	\item Other learning approaches: modern approaches such as A3C~\cite{a3c} claim significantly better performance on some domains.
+	\item Suitable \vampire{} modes for this environment, and the effect the underlying ATP algorithm has on learned policy.
+	\item Modified reward functions: appearing in the proof is not the only way a clause may be useful within \vampire{}. For example, if a clause subsumes a large section of search space, it may still increase proof search performance despite not appearing in the eventual proof. Possible future rewards might include the number of subsumed clauses, and the time taken for the ATP to run.
+	\item There are a significant number of hyper-parameters within this system, all of which may be tuned to increase system performance on a given benchmark set.
+\end{itemize}
+\bibliography{references}
+\end{document}
