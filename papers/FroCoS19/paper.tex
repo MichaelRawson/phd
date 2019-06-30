@@ -12,7 +12,7 @@
 \newcommand{\mizarlarge}{\textit{M40k}}
 \newcommand{\mizarsmall}{\textit{M2k}}
 \begin{document}
-\title{A Neural, Parallel Theorem Prover*}
+\title{A Neurally-Guided, Parallel Theorem Prover*}
 \author{
 	Michael Rawson*\orcidID{0000-0001-7834-1567} \and
 	Giles Reger
@@ -80,7 +80,7 @@ This has led to the application of machine-learning techniques, with the eventua
 Previous work has focussed on premise selection~\cite{DeepMath,MaSh,MaLARea,formula-graph}, static strategy selection~\cite{Bridge,MaLeS,E-MaLeS}, dynamic (run-time) strategy selection~\cite{dynamic-strategy-priority} and more recently, direct proof guidance~\cite{MaLeCoP,FEMaLeCoP,rlCoP,ENIGMA,DNGPS}.
 Proof guidance typically involves a form of machine-learned \emph{heuristic} which biases proof search in some way, allowing the prover to avoid parts of the search space deemed uninteresting by the heuristic.
 
-Work on integrating machine-learned heuristics into automatic theorem provers has relied on hand-engineered features~\cite{MaLeCoP,FEMaLeCoP,rlCoP} or other embedding methods~\cite{ENIGMA}, which have the advantage of simplicity and relative efficiency, but do not encode all information available.
+Work on integrating machine-learned heuristics into automatic theorem provers has relied on hand-engineered features~\cite{MaLeCoP,FEMaLeCoP,rlCoP} or other embedding methods~\cite{ENIGMA}, which have the advantage of simplicity and relative efficiency, but do not encode the syntactic structure of proof state and therefore lose information.
 By contrast, a neural method which takes into account all information (as utilised in this work) should allow for greater precision in proof guidance systems.
 Deep Network Guided Proof Search (DNGPS)~\cite{DNGPS} is an example of previous work in this area, which integrated a deep neural guidance system into the saturation-based prover E~\cite{E}.
 DNGPS achieved successful results, but suffered from the latency introduced into the system by the neural heuristic: despite processing only a reduced amount of the available proof state, the reduction in throughput necessitated a two-phase approach in which the prover was neurally-guided in the first phase, before falling back to traditional proof search in the second.
@@ -93,11 +93,7 @@ Neural networks are well-known tools for supervised learning~\cite{neural-survey
 Processing structured data such as logical formulae is a relatively new domain for neural networks.
 Some work attempts to use unstructured representations of such formulae, such as text, or build entirely-new models for a specific logic~\cite{logical-entailment}, whereas others attempt to re-use neural techniques for generic structures such as trees~\cite{logical-tree}.
 A promising direction in this area is recent research on neural methods working with graphs~\cite{graph-cnn,gcn,gcn-relational}, which have already been applied to premise selection~\cite{formula-graph}.
-Graph neural networks tend to include network layers inspired by convolution operators in image-processing networks, combining information from neighbouring nodes (pixels).
-For example, the Graph Convolutional Network~\cite{gcn} includes the following convolution layer, where \(H_i\) is the network output at layer \(i\), \(\bar{A}\) is the self-connected adjacency matrix, \(\bar{D}\) is the diagonal node degree matrix of \(\bar{A}\), \(W_i\) is a trainable weight matrix and \(\sigma\) is a non-linear activation function:
-\[
-	H_{i + 1} = \sigma\left(\bar{D}^{-\frac{1}{2}}\bar{A}\bar{D}^{-\frac{1}{2}}H_iW_i\right)
-\]
+Graph neural networks tend to include network layers inspired by convolution operators in image-processing networks, combining information from neighbouring nodes (pixels)~\cite{gcn}.
 
 \paragraph{The MPTP Problem Set}
 For training and evaluation purposes a set of problems exported from the Mizar Mathematical Library~\cite{mizar} by the MPTP~\cite{MPTP} system are used.
@@ -108,11 +104,11 @@ Urban et al.~\cite{rlCoP} took a subset\footnote{\url{https://github.com/JUrban/
 \label{section:Design}
 In order to achieve the goal of a neural theorem prover without the disadvantages associated with neural approaches, a new design of theorem prover is required.
 Popular calculi used in existing ATPs tend to be unfriendly to neural guidance.
-For such a system, we require the following from the calculus:
+For such a system, we desire the following from the calculus:
 \begin{enumerate}
-        \item \emph{Proof state must be small.} Attempting to evaluate large proof states structurally requires a lot of computation and resources. Saturation-based provers can have very large proof states, for example.
+        \item \emph{Proof state must be reasonably-sized.} Attempting to evaluate large proof states structurally requires a lot of computation and resources. Saturation-based provers can have very large proof states, for example.
         \item \emph{Evaluation of states must be possible in parallel.} Machine-learning algorithms operate more efficiently in batches. Tree-based approaches (tableau \emph{etc.}) lend themselves to this, whereas saturation provers are inherently sequential.
-        \item \emph{Subgoals must be independent and self-contained.} If the prover has a notion of (sub-)goals which must be dispatched (such as in tableau provers), these should be independent of the rest of the search space.%, without e.g. unifiers. 
+        \item \emph{Subgoals must be independent and self-contained.} If the prover has a notion of (sub-)goals which must be dispatched (such as in tableau provers), these should be independent of the rest of the search space, without e.g. unifiers. 
         Otherwise, the learning system is trying to learn while blind to the context of the search.
 	\item \emph{Subgoals must be intelligible.} Adding ``noise'' such as clausification obscures the original intuition behind a goal, at least for human observers. While this is not necessarily the case for machine-learning algorithms, it seems likely that removing structure and adding artefacts will reduce model performance.
 \end{enumerate}
@@ -154,7 +150,7 @@ At each sub-goal $g$, the prover chooses the inference \(i\) with subgoals \(s\)
 	\right]
 \]
 where ${\sf score}$ gives the heuristic score, ${\sf visits}$ gives the total number of visits to that node so far, and \(c\) is the exploration parameter (theoretically \(\sqrt{2}\)).
-The sub-goal with the minimal score is then selected: this prioritises subgoals considered possibly satisfiable by the heuristic, as satisfiable subgoals allows large parts of the search space to be pruned.
+The sub-goal with the minimal score is then selected: this prioritises subgoals considered possibly satisfiable by the heuristic, as satisfiable subgoals allow large parts of the search space to be pruned.
 
 \subsection{Architecture and Prototype Implementation}
 The system aims to consume all available CPU and GPU resources as efficiently as possible.
@@ -189,7 +185,7 @@ A na\"ive calculus is not necessarily a problem as the heuristic should select p
 However, a more efficient calculus would improve performance where the heuristic fails.
 
 \paragraph{Refutation Tableaux}
-In order to show a conjecture \(C\) from a set of axioms \(A_i\), it suffices to negate \(C\) and the show that the resulting conjunction \(A_1 \wedge A_2 \wedge \ldots \wedge \lnot C\) is unsatisfiable.
+In order to show a conjecture \(C\) from a set of axioms \(A_i\), it suffices to negate \(C\) and then show that the resulting conjunction \(A_1 \wedge A_2 \wedge \ldots \wedge \lnot C\) is unsatisfiable.
 A set of inference rules of the form
 \begin{mathpar}
 	\inferrule{\Gamma_1 \\ \Gamma_2 \\ \ldots \\ \Gamma_n}{\Delta}
@@ -288,7 +284,7 @@ The system can therefore act as an adaptor for any existing ATP, adding parallel
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Learned Heuristic}
 \label{section:heuristic}
-A suitable heuristic function for the system must predict a value between 0 and 1 for a given formula \(F\), where 0 represents a satisfiable goal and 1 represents unsatsfiability, based on a set of tagged formulae seen in previous proof search.
+A suitable heuristic function for the system must predict a value between 0 and 1 for a given formula \(F\), where 0 represents a satisfiable goal and 1 represents unsatisfiability, based on a set of tagged formulae seen in previous proof search.
 Although the data is collected by running the system itself and might be considered \emph{reinforcement} learning, for this approach data collection and learning were considered separately and hence forms a classic supervised-learning problem.
 
 \subsection{Data Collection}
@@ -300,11 +296,11 @@ The dataset is very imbalanced (due to a combination of weakening rules producin
 \subsection{Translation to Graphs}
 Wang et al.~\cite{formula-graph} give a translation from higher-order formulae to directed graphs, and a similar scheme is used here.
 Constants, function symbols, predicate symbols, and bound variables are given their own node.
-Application of functions and predicates to arguments are represented as an ``application node'' with two children: the symbol node and an ``argument list'' node representing the list of arguments.
+Applications of functions and predicates to arguments are represented as an ``application node'' with two children: the symbol node and an ``argument list'' node representing the list of arguments.
 Propositional connectives and equality have the obvious representation, while quantifiers have two children: the variable they bind and their sub-formula.
 
 To produce an input graph from a formula \(F\), the formula is first parsed into an abstract syntax tree.
-Common sub-trees up to \(\alpha\)-equivalence are merged, then the resulting directed acyclic graph has any named-symbol nodes replaced with an opaque, nameless label such as "predicate" or "variable" --- since distinct symbols remain as distinct nodes under this scheme, no information is lost other than the natural-language semantics of the symbol name.
+Common sub-trees up to \(\alpha\)-equivalence~\cite{barendregt} are merged, then the resulting directed acyclic graph has any named-symbol nodes replaced with an opaque, nameless label such as ``predicate'' or ``variable'' --- since distinct symbols remain as distinct nodes under this scheme, no information is lost other than the natural-language semantics of the symbol name.
 In practice, undirected graphs improved model performance so the graph is made undirected before encoding node labels as one-hot inputs to produce the final input graphs.
 An example formula's translation is shown in Fig. \ref{figure:translation}.
 
