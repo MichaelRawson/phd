@@ -1,0 +1,118 @@
+\documentclass[24pt, a1paper, portrait]{tikzposter}
+\tikzposterlatexaffectionproofoff
+\usepackage{tikz}
+\usepackage{amsmath}
+\usepackage{enumitem}
+\usetikzlibrary{shapes, arrows}
+%\usepackage[sfdefault]{roboto}
+\usepackage[T1]{fontenc}
+
+\usetheme{Simple}
+\definecolorstyle{manchester}
+{
+	\definecolor{highlight}{rgb}{0.414, 0.171, 0.566}
+}
+{
+	\colorlet{titlebgcolor}{highlight}
+	\colorlet{blocktitlefgcolor}{highlight}
+}
+\usecolorstyle{manchester}
+
+\tikzstyle{decision} = [diamond, fill=highlight, text=white, align=center, node distance=15cm]
+\tikzstyle{block} = [rectangle, fill=highlight, text=white, rounded corners, align=center, node distance=15cm, minimum height=4cm]
+\tikzstyle{cloud} = [ellipse, fill=highlight, text=white, align=center, node distance=15cm, minimum height=4cm]
+\tikzstyle{arrow} = [->, draw, draw=highlight, line width=0.3cm]
+
+\title{A Proof Calculus for Learned Heuristics}
+\author{Michael Rawson, Giles Reger}
+\date{April 2018}
+\institute{University of Manchester, UK}
+ 
+\begin{document}
+\maketitle
+
+\block{Abstract}
+{
+	Machine learning techniques may prove capable of efficiently guiding search for proofs of human theorems.
+	Many modern automated theorem provers (E, {\sc Spass}, iProver, Vampire, \ldots) make use of proof calculi such as saturation or instance generation which, while efficient, are unsuitable for current machine-learning technology.
+	We propose the use of a type-theoretic calculus for a future theorem prover which attempts to leverage machine-learning techniques.
+}
+
+\begin{columns}
+\column{0.5}
+\block{The Prover Cycle}
+{
+	\begin{tikzfigure}[A generalisation of information flow in a modern prover. Note the impact that a strong (learning) heuristic may have.]
+		\begin{tikzpicture}
+			\node [decision] (choose) {choose next\\step};
+			\node [cloud, right of=choose] (heuristic) {heuristic};
+			\node [block, below of=choose] (perform) {execute step};
+			\node [block, right of=perform] (process) {process\\consequences};
+
+			\path [arrow] (choose) edge node [midway, right, align=center] {proof\\step} (perform);
+			\path [arrow] (perform) edge node [midway, above] {new state} (process);
+			\path [arrow] (process) edge node [sloped, above] {stable state} (choose);
+			\path [arrow] (process) edge node [midway, right, align=center] {prover\\data} (heuristic);
+			\path [arrow] (heuristic) edge node [midway, above] {guidance} (choose);
+		\end{tikzpicture}
+	\end{tikzfigure}
+}
+
+\block{Existing Calculi: Problems for ML}
+{
+	Existing calculi such as resolution do not adapt well to current machine-learning methods, for several reasons:
+
+	\begin{itemize}[leftmargin=1.5cm]
+		\item Artificial pre-processing (CNF, Skolemisation) reduces human structure in proof state
+		\item Large, recursive input space: proof state
+		\item Huge number of outputs to predict: possible next steps from an unbounded set of clauses
+		\item A reliance on high performance for finding proofs
+	\end{itemize}
+	A better calculus would address these issues while retaining the reasonably-short proofs and high performance of existing calculi.
+}
+
+\column{0.5}
+\block{Type Theory for First-Order Logic}
+{
+	Via the Curry-Howard correspondence (``propositions-as-types''), we can encode first-order logic in a system that resembles LF.
+	For example, the theorem
+	\[
+		(\forall x, P(x)) \implies P(c) \wedge P(d)
+	\]
+	might be shown with the \(\lambda\)-term
+	\[
+		\lambda p : (\forall x, P(x)).\ \textrm{and}(p(c), p(d))
+	\]
+	Proof search is now term synthesis.
+}
+
+\block{Type Theory for Proof Search}
+{
+	By allowing ``holes'' in the system, search for an appropriate term can proceed iteratively: consider \emph{modus ponens}, translated into a type:
+	\[
+		P \to (P \to Q) \to Q
+	\]
+
+	This can obtained by repeatedly refining holes, \(?\), such that the term at any point still satisfies the target type.
+	Note the convergence of the inferred type onto the target type as the proof proceeds, and the limited amount of choice at each step.
+
+\begin{center}
+	\begin{tabular}{l | l}
+		\\
+		Refined Term & Inferred Type \\
+		\(?\) & \(?\) \\
+		\(\lambda x:(P).?\) & \(P \to\ ?\)\\
+		\(\lambda x:(P).\lambda f:(P \to Q).?\) & \(P \to (P \to Q) \to\ ?\)\\
+		\(\lambda x:(P).\lambda f:(P \to Q). \left(?\ ?\right)\) & \(P \to (P \to Q) \to\ ?\)\\
+		\(\lambda x:(P).\lambda f:(P \to Q). \left(f\ ?\right)\) & \(P \to (P \to Q) \to\ Q\)\\
+		\(\lambda x:(P).\lambda f:(P \to Q). \left(f\ x\right)\) & \(P \to (P \to Q) \to\ Q\)\\
+		\\
+	\end{tabular}
+\end{center}
+	The input state is now more structured, and much smaller.
+	Additionally, to fill any given hole, only a subset of all available variables will be appropriate for the target type --- this reduces the output space dramatically.
+	Deductions and machine-learnt heuristics may also occur in parallel, as proof steps are not inter-dependent.
+}
+
+\end{columns}
+\end{document}
