@@ -1,0 +1,195 @@
+digraph clauses {
+	overlap=false;
+	splines=true;
+
+	// Skolems
+	sk0 [label="S", shape=triangle];
+	sk1 [label="S", shape=triangle];
+
+	// Symbols
+	agatha [label="F"];
+	butler [label="F"];
+	charles [label="F"];
+	hates [label="F"];
+	killed [label="F"];
+	lives [label="F"];
+	richer [label="F"];
+
+	// Vars
+	X0 [label="VAR"];
+	X1 [label="VAR"];
+
+	// Terms
+	killed_sk0_agatha [label="@"];
+	killed_sk0_agatha -> killed;
+	killed_sk0_agatha -> sk0;
+	killed_sk0_agatha -> agatha;
+
+	lives_sk0 [label="@"];
+	lives_sk0 -> lives;
+	lives_sk0 -> sk0;
+
+	lives_agatha [label="@"];
+	lives_agatha -> lives;
+	lives_agatha -> agatha;
+
+	lives_butler [label="@"];
+	lives_butler -> lives;
+	lives_butler -> butler;
+
+	lives_charles [label="@"];
+	lives_charles -> lives;
+	lives_charles -> charles;
+
+	eq_charles_X0 [label="="];
+	eq_charles_X0 -> charles;
+	eq_charles_X0 -> X0;
+
+	eq_butler_X0 [label="="];
+	eq_butler_X0 -> butler;
+	eq_butler_X0 -> X0;
+
+	eq_agatha_X0 [label="="];
+	eq_agatha_X0 -> agatha;
+	eq_agatha_X0 -> X0;
+
+	lives_X0 [label="@"];
+	lives_X0 -> lives;
+	lives_X0 -> X0;
+
+	not_lives_X0 [label="¬"];
+	not_lives_X0 -> lives_X0;
+
+	hates_X0_X1 [label="@"];
+	hates_X0_X1 -> hates;
+	hates_X0_X1 -> X0;
+	hates_X0_X1 -> X1;
+
+	killed_X0_X1 [label="@"];
+	killed_X0_X1 -> killed;
+	killed_X0_X1 -> X0;
+	killed_X0_X1 -> X1;
+
+	not_killed_X0_X1 [label="¬"];
+	not_killed_X0_X1 -> killed_X0_X1;
+
+	richer_X0_X1 [label="@"];
+	richer_X0_X1 -> richer;
+	richer_X0_X1 -> X0;
+	richer_X0_X1 -> X1;
+
+	not_richer_X0_X1 [label="¬"];
+	not_richer_X0_X1 -> richer_X0_X1;
+
+	hates_charles_X0 [label="@"];
+	hates_charles_X0 -> hates;
+	hates_charles_X0 -> charles;
+	hates_charles_X0 -> X0;
+
+	not_hates_charles_X0 [label="¬"];
+	not_hates_charles_X0 -> hates_charles_X0;
+
+	hates_agatha_X0 [label="@"];
+	hates_agatha_X0 -> hates;
+	hates_agatha_X0 -> agatha;
+	hates_agatha_X0 -> X0;
+
+	not_hates_agatha_X0 [label="¬"];
+	not_hates_agatha_X0 -> hates_agatha_X0;
+
+	eq_butler_X0 [label="="];
+	eq_butler_X0 -> butler;
+	eq_butler_X0 -> X0;
+
+	hates_butler_X0 [label="@"];
+	hates_butler_X0 -> hates;
+	hates_butler_X0 -> butler;
+	hates_butler_X0 -> X0;
+
+	richer_X0_agatha [label="@"];
+	richer_X0_agatha -> richer;
+	richer_X0_agatha -> X0;
+	richer_X0_agatha -> agatha;
+
+	sk1_X0 [label="@"];
+	sk1_X0 -> sk1;
+	sk1_X0 -> X0;
+
+	hates_X0_sk1_X0 [label="@"];
+	hates_X0_sk1_X0 -> hates;
+	hates_X0_sk1_X0 -> X0;
+	hates_X0_sk1_X0 -> sk1_X0;
+
+	not_hates_X0_sk1_X0 [label="¬"];
+	not_hates_X0_sk1_X0 -> hates_X0_sk1_X0;
+
+	eq_agatha_butler [label="="];
+	eq_agatha_butler -> agatha;
+	eq_agatha_butler -> butler;
+
+	not_eq_agatha_butler [label="¬"];
+	not_eq_agatha_butler -> eq_agatha_butler;
+
+	killed_agatha_agatha [label="@"];
+	killed_agatha_agatha -> killed;
+	killed_agatha_agatha -> agatha;
+	killed_agatha_agatha -> agatha;
+
+	not_killed_agatha_agatha [label="¬"];
+	not_killed_agatha_agatha -> killed_agatha_agatha;
+
+	// Clauses
+	u30 [label="C", shape=box];
+	u30 -> killed_sk0_agatha;
+
+	u29 [label="C", shape=box];
+	u29 -> lives_sk0;
+
+	u31 [label="C", shape=box];
+	u31 -> lives_agatha;
+
+	u32 [label="C", shape=box];
+	u32 -> lives_butler;
+
+	u33 [label="C", shape=box];
+	u33 -> lives_charles;
+
+	u34 [label="C", shape=box];
+	u34 -> eq_charles_X0;
+	u34 -> eq_butler_X0;
+	u34 -> eq_agatha_X0;
+	u34 -> not_lives_X0;
+
+	u35 [label="C", shape=box];
+	u35 -> hates_X0_X1;
+	u35 -> not_killed_X0_X1;
+
+	u36 [label="C", shape=box];
+	u36 -> not_richer_X0_X1;
+	u36 -> not_killed_X0_X1;
+
+	u37 [label="C", shape=box];
+	u37 -> not_hates_charles_X0;
+	u37 -> not_hates_agatha_X0;
+
+	u38 [label="C", shape=box];
+	u38 -> hates_agatha_X0;
+	u38 -> eq_butler_X0;
+
+	u39 [label="C", shape=box];
+	u39 -> hates_butler_X0;
+	u39 -> richer_X0_agatha;
+
+	u40 [label="C", shape=box];
+	u40 -> hates_butler_X0;
+	u40 -> not_hates_agatha_X0;
+
+	u41 [label="C", shape=box];
+	u41 -> not_hates_X0_sk1_X0;
+
+	u42 [label="C", shape=box];
+	u42 -> not_eq_agatha_butler;
+
+	u43 [label="¬C", shape=box, color=red];
+	u43 -> not_killed_agatha_agatha;
+}

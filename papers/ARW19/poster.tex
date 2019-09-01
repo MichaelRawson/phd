@@ -1,11 +1,9 @@
 \documentclass[24pt, a1paper, portrait]{tikzposter}
-\tikzposterlatexaffectionproofoff
-\usepackage{tikz}
-\usepackage{amsmath}
 \usepackage{enumitem}
-\usetikzlibrary{shapes, arrows}
-%\usepackage[sfdefault]{roboto}
-\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\tikzposterlatexaffectionproofoff
+
+\newcommand{\vampire}{\textsc{Vampire}}
 
 \usetheme{Simple}
 \definecolorstyle{manchester}
@@ -18,14 +16,9 @@
 }
 \usecolorstyle{manchester}
 
-\tikzstyle{decision} = [diamond, fill=highlight, text=white, align=center, node distance=15cm]
-\tikzstyle{block} = [rectangle, fill=highlight, text=white, rounded corners, align=center, node distance=15cm, minimum height=4cm]
-\tikzstyle{cloud} = [ellipse, fill=highlight, text=white, align=center, node distance=15cm, minimum height=4cm]
-\tikzstyle{arrow} = [->, draw, draw=highlight, line width=0.3cm]
-
-\title{A Proof Calculus for Learned Heuristics}
+\title{Reinforcement-Learned Input for Saturation}
 \author{Michael Rawson, Giles Reger}
-\date{April 2018}
+\date{September 2019}
 \institute{University of Manchester, UK}
  
 \begin{document}
@@ -33,86 +26,76 @@
 
 \block{Abstract}
 {
-	Machine learning techniques may prove capable of efficiently guiding search for proofs of human theorems.
-	Many modern automated theorem provers (E, {\sc Spass}, iProver, Vampire, \ldots) make use of proof calculi such as saturation or instance generation which, while efficient, are unsuitable for current machine-learning technology.
-	We propose the use of a type-theoretic calculus for a future theorem prover which attempts to leverage machine-learning techniques.
+	Many of today's best-performing automatic theorem provers (ATPs) for first-order logic rely on \emph{saturation} algorithms.
+	Saturation algorithms perform all possible inferences within an active set, which yields a complete proof search algorithm.
+	However, this produces a large number of clauses, which hinders attempts to guide the prover using neural networks.
+	We describe a system which infers new clauses in an incomplete fashion, guided by a neural network.
+	The system (in progress) is rewarded if generated clauses are subsequently used by the saturation-based ATP \vampire{} in a proof.
+	In this way, the system learns to selectively infer new clauses which are important in proof search, but might not otherwise be found for some time in \vampire{}'s algorithm.
+
 }
 
 \begin{columns}
 \column{0.5}
-\block{The Prover Cycle}
+\block{System Description}
 {
-	\begin{tikzfigure}[A generalisation of information flow in a modern prover. Note the impact that a strong (learning) heuristic may have.]
-		\begin{tikzpicture}
-			\node [decision] (choose) {choose next\\step};
-			\node [cloud, right of=choose] (heuristic) {heuristic};
-			\node [block, below of=choose] (perform) {execute step};
-			\node [block, right of=perform] (process) {process\\consequences};
-
-			\path [arrow] (choose) edge node [midway, right, align=center] {proof\\step} (perform);
-			\path [arrow] (perform) edge node [midway, above] {new state} (process);
-			\path [arrow] (process) edge node [sloped, above] {stable state} (choose);
-			\path [arrow] (process) edge node [midway, right, align=center] {prover\\data} (heuristic);
-			\path [arrow] (heuristic) edge node [midway, above] {guidance} (choose);
-		\end{tikzpicture}
-	\end{tikzfigure}
+	The system must use an existing ATP system, in this case \vampire{}.
+	On a given first-order problem, it acts as follows:
+	\begin{enumerate}[leftmargin=1in]
+		\item Clausify an input problem to obtain a clause set.
+		\item Loop:
+			\begin{enumerate}[leftmargin=1in]
+				\item Neurally select an inference between two clauses.
+				\item Perform the inference (using the ATP)
+				\item Add any generated clauses to the clause set.
+			\end{enumerate}
+		\item Repeat until a time or inference threshold is met.
+		\item Invoke the ATP on the new clause set and run as usual.
+	\end{enumerate}
+	\vspace{.5in}
+	This retains the advantages of advanced clausification and theorem-proving technology (such as completeness and advanced redundancy eliminations), but with the addition of a neural pre-processing step.
 }
 
-\block{Existing Calculi: Problems for ML}
+\block{Reinforcement and Reward}
 {
-	Existing calculi such as resolution do not adapt well to current machine-learning methods, for several reasons:
+	It is unclear at present what reward function should be chosen for the network, but the reward can be significantly more expressive than any manual heuristic can be.
 
-	\begin{itemize}[leftmargin=1.5cm]
-		\item Artificial pre-processing (CNF, Skolemisation) reduces human structure in proof state
-		\item Large, recursive input space: proof state
-		\item Huge number of outputs to predict: possible next steps from an unbounded set of clauses
-		\item A reliance on high performance for finding proofs
+	Examples of inferences to reward include:
+	\begin{itemize}[leftmargin=1in]
+		\item Clauses included in the eventual proof (current).
+		\item Only clauses used more than once in the proof.
+		\item Clauses which subsume other clauses.
+		\item Ground clauses (which can be used for splitting).
+		\item Any weighted combination of the above.
 	\end{itemize}
-	A better calculus would address these issues while retaining the reasonably-short proofs and high performance of existing calculi.
+	\vspace{.5in}
+	Since the clause space can be very large even on small problems, supervised learning is not very practical here.
+	Instead, reinforcement learning techniques may be leveraged, providing training data by self-play.
+	The current prototype simply generates clause sets by self-play and then trains the network to identify clauses used in the proof.
 }
 
 \column{0.5}
-\block{Type Theory for First-Order Logic}
+\block{Graphs for Clause Processing}
 {
-	Via the Curry-Howard correspondence (``propositions-as-types''), we can encode first-order logic in a system that resembles LF.
-	For example, the theorem
-	\[
-		(\forall x, P(x)) \implies P(c) \wedge P(d)
-	\]
-	might be shown with the \(\lambda\)-term
-	\[
-		\lambda p : (\forall x, P(x)).\ \textrm{and}(p(c), p(d))
-	\]
-	Proof search is now term synthesis.
+	{
+	\centering
+	\includegraphics[width=10in]{clause-graph}
+	}
+	The complex directed graph shown is a compact, lossless representation of TPTP problem \texttt{PUZ001+1}, or ``who killed Aunt Agatha?'', with perfect term sharing.
+	Graph neural networks can process such graphs by sharing information between adjacent nodes.
+	This is a convenient end-to-end method for processing clauses in a neural context.
 }
 
-\block{Type Theory for Proof Search}
+\block{Future Work}
 {
-	By allowing ``holes'' in the system, search for an appropriate term can proceed iteratively: consider \emph{modus ponens}, translated into a type:
-	\[
-		P \to (P \to Q) \to Q
-	\]
-
-	This can obtained by repeatedly refining holes, \(?\), such that the term at any point still satisfies the target type.
-	Note the convergence of the inferred type onto the target type as the proof proceeds, and the limited amount of choice at each step.
-
-\begin{center}
-	\begin{tabular}{l | l}
-		\\
-		Refined Term & Inferred Type \\
-		\(?\) & \(?\) \\
-		\(\lambda x:(P).?\) & \(P \to\ ?\)\\
-		\(\lambda x:(P).\lambda f:(P \to Q).?\) & \(P \to (P \to Q) \to\ ?\)\\
-		\(\lambda x:(P).\lambda f:(P \to Q). \left(?\ ?\right)\) & \(P \to (P \to Q) \to\ ?\)\\
-		\(\lambda x:(P).\lambda f:(P \to Q). \left(f\ ?\right)\) & \(P \to (P \to Q) \to\ Q\)\\
-		\(\lambda x:(P).\lambda f:(P \to Q). \left(f\ x\right)\) & \(P \to (P \to Q) \to\ Q\)\\
-		\\
-	\end{tabular}
-\end{center}
-	The input state is now more structured, and much smaller.
-	Additionally, to fill any given hole, only a subset of all available variables will be appropriate for the target type --- this reduces the output space dramatically.
-	Deductions and machine-learnt heuristics may also occur in parallel, as proof steps are not inter-dependent.
+	Much is still left to do:
+	\begin{itemize}[leftmargin=1in]
+		\item Finish training and evaluate a prototype.
+		\item Examine the effect on proof search in \vampire{}.
+		\item Determine good strategies for the modified clause sets generated.
+		\item Experiment with other reward functions and reinforcement learning techniques, such as \(Q\)-learning.
+	\end{itemize}
 }
-
 \end{columns}
+
 \end{document}
