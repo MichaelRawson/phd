@@ -10,60 +10,66 @@
 Thesis outline for second-year progress report. I research the application of recently-developed machine learning techniques to automatic theorem provers in a variety of different ways.
 }
 \section{Introduction}
+I introduce common topics and background used throughout the thesis, but which are not directly relevant to the thesis topic.
+These will include:
 \begin{itemize}
 	\item Background and history of automated reasoning and machine learning.
-	\item First-order logic as a setting: TPTP and Vampire.
+	\item First-order logic as a setting: Vampire and TPTP
 	\item Brief survey of the state of ATP research, including current problems and research directions without getting into literature review.
 	\item Current capabilities and recent advances in relevant machine learning topics.
-	\item Machine learning as applied to theorem proving: domains and success or otherwise.
 \end{itemize}
 
 \section{Literature Review}
 \label{sec:lit-review}
 A literature review, focussing on, but not limited to, the intersection of the two domains.
-Previous PhD thesis in this area: James Bridge~\cite{bridge} --- cover advances since then.
+In particular, cover advances since the previous PhD thesis in this area~\cite{bridge}.
 
 \section{Data-Driven Theorem Proving}
 \label{sec:data}
-Machine learning is generally a statistical inference tool: before applying learning, what conclusions can we draw from data?
+Machine learning is a statistical inference tool: before applying learning, what conclusions can we draw from data?
 Does this data correspond to existing ATP ``folklore'' covered in Section \ref{sec:lit-review}?
+I present work based on the following:
 \begin{itemize}
-	\item Vampire Workshop 2018 talk on statistical analysis of Vampire proofs. Shows a variety of statistical properties about Vampire's proof search capabilities, including that the majority of proofs are relatively ``shallow'', for example.
-	\item Unpublished work intended for LPAR 2018 (can we put on arXiv for citations perhaps?) again showing some statistical properties of TSTP proofs generated from various ATP systems. Also discovered some flaws in proof output in mainstream theorem provers, showing that the field has some way to go in the direction of verified output.
-	\item CADE 2019 work (paper accepted, publication pending) on reshaping the proof search space by means of variable age/weight ratios. Also experimentally confirms folklore about optimum AWR values.
+	\item Vampire Workshop 2018 talk~\cite{vampire2018} on statistical analysis of Vampire proofs. Shows a variety of statistical properties about Vampire's proof search capabilities, including that the majority of proofs are relatively ``shallow'', for example.
+	\item Unpublished work showing some statistical properties of TSTP proofs generated from various ATP systems. This work also discovered some flaws in proof output in mainstream theorem provers, showing that the field has some way to go in the direction of verified output.
+	\item CADE 2019~\cite{cade2019} work on reshaping the proof search space by means of variable age/weight ratios. The work also experimentally confirms folklore about optimum AWR values.
 \end{itemize}
-Some relevant ATP folklore/philosophy can be discussed here.
+
+\noindent
+Some relevant ATP folklore/philosophy is also be discussed here.
 ATP systems tend to find a proof quickly, or not at all.
-The task of performing well at TPTP (or other benchmarks) is therefore something of a set-cover problem: reshape the search space in several different ways (by means of \emph{strategies} in Vampire, for instance) until proof search succeeds in finding a proof quickly.
+Therefore, the task of performing well at TPTP (or other benchmarks) is therefore something of a set-cover problem: reshape the search space in several different ways (by means of \emph{strategies} in Vampire, for instance) until proof search succeeds in finding a proof quickly.
 
 \section{Intelligent High-Level ATP Guidance}
-Work published at PAAR 2018 on an approach for improving ATP performance by selecting strategies likely to succeed via a machine-learned heuristic.
+Present work published at PAAR 2018~\cite{paar2018} on an approach for improving ATP performance by selecting strategies likely to succeed via a machine-learned heuristic at runtime.
 This work also describes a method of strategy scheduling which avoids some performance pitfalls, playing into Section \ref{sec:efficiency}.
 In a more general context, this section describes techniques for indirectly guiding an existing ATP system.
 
 \section{Representing Logical Data for ML}
 \label{sec:representation}
 A central problem for integrating ML techniques into ATP systems is representation: logical data such as terms and clauses do not map well into existing ML patterns such as real vectors, sequences, or images.
-Work pending publication at FroCoS 2019 describes a theorem-proving system guided by a neural network using a graph-based representation of logical data.
+Work published at FroCoS 2019~\cite{frocos2019} describes a theorem-proving system guided by a neural network using a graph-based representation of logical data.
 This representation is not novel (used previously in premise selection for higher-order logic) but this work develops it further and applies it to search guidance for first-order logic.
 
 \section{Efficiency Concerns for Guided Provers}
 \label{sec:efficiency}
 One problem with the neural method described in Section \ref{sec:representation} is latency: from input to output, the neural heuristic takes significant amounts of time, which impacts prover performance sufficiently to negate the improvement brought about by guidance.
-Work presented at AITP 2019 describes a prover architecture which ameliorates this issue, in exchange for a set of constraints on the prover calculus.
+Work presented at AITP 2019~\cite{aitp2019} describes a prover architecture which ameliorates this issue, in exchange for a set of constraints on the prover calculus.
 A na\"ive calculus is used here as a prototype.
 
-\section{Ongoing Work: Neural Clause Inference}
+\section{Neural Clause Inference (ongoing)}
 A result from Section \ref{sec:representation} is that clausal forms can be represented in neural networks.
 While a saturation-based theorem prover remains unfriendly to neural guidance for performance reasons, a pre-processing step in which a neural network chooses some clauses inferences to perform before feeding the resulting clause set to an existing ATP system achieves ``smart'' reshaping of the search space in order to encourage a short ATP proof, as discussed in Section \ref{sec:data}, without the disadvantages of proof guidance or the manual set-cover approach of ATP strategies.
 
-\section{Future Work: Non-Clausal Connection Methods with Neural Guidance}
+\section{Connection Methods with Neural Guidance (ongoing)}
 Section \ref{sec:efficiency} presents a prover prototype, with some issues introduced by the na\"ive calculus employed.
-Future work proceeds down an obvious route by employing an existing-but-similar calculus with better properties, the non-clausal connection calculus.
-Implementation is ongoing but theoretically this is promising.
+An obvious improvement uses an existing calculus to improve prover performance, the \emph{connection calculus}.
+Another problem with Section \ref{sec:efficiency} is the lack of real-valued distance metrics, rather than boolean satisfiability metrics.
+The issue is addressed in this work, experimenting with regression rather than classification for guiding theorem proving.
 
 \section{Conclusion}
-Argue that ATP systems augmented with learned knowledge have a promising future, and discuss future directions for the area based on experimental results of preceding sections.
+ATP systems augmented with learned knowledge have a promising future.
+I discuss future directions for the area based on theoretical, practical and experimental results of preceding sections.
 
 \printbibliography
 \end{document}
