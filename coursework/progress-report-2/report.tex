@@ -7,88 +7,97 @@
 \begin{document}
 \maketitle
 \section{Introduction}
-I research the application of recently-developed machine learning techniques to automatic theorem provers in a variety of different ways.
+I research the application of recently-developed machine learning (ML) techniques to automatic theorem provers (ATPs) in a variety of different ways.
 This documents progress made in this area for my PhD program, and plans the content and delivery of my thesis.
 
 \section{Progress}
-Several novel pieces of research have been conducted in the time since the Year 1 Progress Report, and some is ongoing.
-These include published work into representing logical data in a neural context (Section \ref{sec:representation}), prover architectures for supporting such a representation (Section \ref{sec:efficiency}), and further work on statistical analysis (Section \ref{sec:data}).
-Work with neurally-guided clausal inference (Section \ref{sec:clauses}) and distance-based guidance metrics (Section \ref{sec:distance}) is ongoing and shows promise.
+Several novel pieces of research have been conducted in the time since the preceding Progress Report, and some is ongoing.
+These include published work into representing logical data in a neural context (\S\ref{sec:representation}), prover architectures for supporting such a representation (\S\ref{sec:efficiency}), and statistical analysis of existing theorem provers (\S\ref{sec:background}).
+Work with distance-based guidance metrics (\S\ref{sec:distance}) and neurally-guided clausal inference (\S\ref{sec:clauses}) is ongoing and shows promise.
 
 \section{Thesis Outline}
 The proposed outline of the thesis follows.
 
-\subsection{Introduction}
-I introduce common topics and background used throughout the thesis, but which are not directly relevant to the thesis topic.
-These will include:
+\subsection{Introduction and Motivation}
+\label{sec:introduction}
+Automatic theorem provers stand to gain from the application of machine-learning techniques.
+The ideal is an ``intelligent'' ATP system: one that combines the expert intuition of the human mathematician with the raw speed and tenacity of automatic proof search.
+Such a system would be able to learn generalising experience from easier proofs found in a target domain (such as mathematics or software verification) and apply this knowledge to find proofs of more difficult conjectures, specialising the high performance of the unguided ATP to the target domain.
+In this chapter I introduce and motivate this ideal, and provide a critique of the \emph{status quo} in ATP systems.
+
+\subsection{Background and Context}
+\label{sec:background}
+Firstly, I introduce necessary historical context not directly related to the thesis topic, but assumed throughout.
+This includes:
 \begin{itemize}
-	\item Background and history of automated reasoning and machine learning.
-	\item First-order logic as a setting: Vampire and TPTP
-	\item Brief survey of the state of ATP research, including current problems and research directions without getting into literature review.
-	\item Current capabilities and recent advances in relevant machine learning topics.
+	\item A short history of automated reasoning and machine learning.
+	\item First-order logic as a setting: syntax, semantics, capabilities.
+	\item Vampire as a research vehicle.
+	\item TPTP, Mizar as benchmarks.
+	\item Brief survey of the state of ATP research, including current problems and research directions
+	\item Current capabilities and recent advances in relevant machine learning topics, in particular neural networks.
 \end{itemize}
+I then move onto a more specialised literature review focusing on, but not limited to, the intersection of machine learning and theorem proving as AI topics.
+In particular, I hope to cover advances since the previous PhD thesis in this area~\cite{bridge}.
 
-\subsection{Literature Review}
-\label{sec:lit-review}
-A literature review, focussing on, but not limited to, the intersubsection of the two domains.
-In particular, cover advances since the previous PhD thesis in this area~\cite{bridge}.
-
-\subsection{Data-Driven Theorem Proving}
-\label{sec:data}
-Machine learning is a statistical inference tool: before applying learning, what conclusions can we draw from data?
-Does this data correspond to existing ATP ``folklore'' covered in Section \ref{sec:lit-review}?
-I present work based on the following:
+One unique aspect of ATP research is ``folklore'': acquired knowledge that ATP implementors have discovered during their efforts, which is not generally empirically validated.
+I have expended some effort to validate some of these claims, and to identify some of my own --- since learning is a statistical inference tool, what statistical conclusions can we draw from data before applying a learning algorithm?
+I present the following work:
 \begin{itemize}
 	\item Vampire Workshop 2018 talk~\cite{vampire2018} on statistical analysis of Vampire proofs. Shows a variety of statistical properties about Vampire's proof search capabilities, including that the majority of proofs are relatively ``shallow'', for example.
 	\item Unpublished work showing some statistical properties of TSTP proofs generated from various ATP systems. This work also discovered some flaws in proof output in mainstream theorem provers, showing that the field has some way to go in the direction of verified output.
 	\item CADE 2019~\cite{cade2019} work on reshaping the proof search space by means of variable age/weight ratios. The work also experimentally confirms folklore about optimum AWR values.
 \end{itemize}
+Finally, I discuss a trade-off between lower-quality, indirect, computationally-inexpensive ``fast'' learned guidance and higher-quality, direct, expensive ``slow'' guidance.
+This trade-off forms the backbone of the thesis.
 
-\noindent
-Some relevant ATP folklore/philosophy is also be discussed here.
+\subsection{Indirect ATP Guidance}
 ATP systems tend to find a proof quickly, or not at all.
-Therefore, the task of performing well at TPTP (or other benchmarks) is therefore something of a set-cover problem: reshape the search space in several different ways (by means of \emph{strategies} in Vampire, for instance) until proof search succeeds in finding a proof quickly.
+Therefore, the task of performing well at any finite benchmark is therefore something of a set-cover problem: reshape the search space in several different ways (by means of \emph{strategies} in Vampire, for instance) until proof search succeeds in finding a proof quickly.
+I present work published at PAAR 2018~\cite{paar2018} on an approach for improving ATP performance by selecting strategies likely to succeed via a machine-learned heuristic at run-time.
+This work also describes a method of strategy scheduling which avoids some performance pitfalls.
+In a more general context, this subsection describes techniques for indirectly guiding an existing ATP system by monitoring several strategies: this is ``fast'' guidance.
 
-\subsection{Intelligent High-Level ATP Guidance}
-Present work published at PAAR 2018~\cite{paar2018} on an approach for improving ATP performance by selecting strategies likely to succeed via a machine-learned heuristic at runtime.
-This work also describes a method of strategy scheduling which avoids some performance pitfalls, playing into Section \ref{sec:efficiency}.
-In a more general context, this subsection describes techniques for indirectly guiding an existing ATP system.
+Limitations of this approach are discussed: can this work ever hope to do better than have an educated guess at the behaviour of the underlying algorithms?
+If a system is to actually learn from \emph{problems}, rather than system behaviour on said problems, one has to solve a problem of \emph{representation}.
 
-\subsection{Representing Logical Data for ML}
+\subsection{Representing Logical Data in Neural Networks}
 \label{sec:representation}
 A central problem for integrating ML techniques into ATP systems is representation: logical data such as terms and clauses do not map well into existing ML patterns such as real vectors, sequences, or images.
 Work published at FroCoS 2019~\cite{frocos2019} describes a theorem-proving system guided by a neural network using a graph-based representation of logical data.
-This representation is not novel (used previously in premise selection for higher-order logic) but this work develops it further and applies it to search guidance for first-order logic.
+This representation is not novel (used previously in premise selection for higher-order logic) but this work develops it further and applies it to search guidance for first-order logic: the first ATP system purpose-built for ``slow'' guidance.
+I compare several learning methods for representing logical data, and their capacity for representation.
 
-\subsection{Efficiency Concerns for Guided Provers}
+\subsection{Efficiency Concerns for Neurally-Guided Provers}
 \label{sec:efficiency}
-One problem with the neural method described in Section \ref{sec:representation} is latency: from input to output, the neural heuristic takes significant amounts of time, which impacts prover performance sufficiently to negate the improvement brought about by guidance.
+One problem with the neural method described in \S\ref{sec:representation} is latency: from input to output, the neural heuristic takes significant amounts of time, which impacts prover performance sufficiently to negate the improvement brought about by guidance.
 Work presented at AITP 2019~\cite{aitp2019} describes a prover architecture which ameliorates this issue, in exchange for a set of constraints on the prover calculus.
-A na\"ive calculus is used here as a prototype.
-
-\subsection{Neural Clause Inference (ongoing)}
-\label{sec:clauses}
-A result from Section \ref{sec:representation} is that clausal forms can be represented in neural networks.
-While a saturation-based theorem prover remains unfriendly to neural guidance for performance reasons, a pre-processing step in which a neural network chooses some clauses inferences to perform before feeding the resulting clause set to an existing ATP system achieves ``smart'' reshaping of the search space in order to encourage a short ATP proof, as discussed in Section \ref{sec:data}, without the disadvantages of proof guidance or the manual set-cover approach of ATP strategies.
+A na\"ive calculus is used here as a prototype, but this severely limits the performance of the system.
 
 \subsection{Connection Methods with Neural Guidance (ongoing)}
 \label{sec:distance}
-Section \ref{sec:efficiency} presents a prover prototype, with some issues introduced by the na\"ive calculus employed.
+\S\ref{sec:efficiency} presents a prover prototype, with some issues introduced by the na\"ive calculus employed.
 An obvious improvement uses an existing calculus to improve prover performance, the \emph{connection calculus}.
-Another problem with Section \ref{sec:efficiency} is the lack of real-valued distance metrics, rather than binary satisfiability metrics.
+Another problem with \S\ref{sec:efficiency} is the lack of real-valued distance metrics, rather than binary satisfiability metrics.
 The issue is addressed in this work, experimenting with regression rather than classification for guiding theorem proving.
+
+\subsection{Neural Clause Inference (ongoing)}
+\label{sec:clauses}
+A result from \S\ref{sec:representation} is that clause-normal forms can be represented in neural networks.
+While a state-of-the-art saturation-based ATP remains unfriendly to neural guidance for performance reasons, a pre-processing step in which a neural network chooses some clausal inferences to perform before feeding the resulting modified clause set to an existing ATP system achieves ``smart'' reshaping of the search space in order to encourage a short ATP proof, as discussed in \S\ref{sec:background}, without the disadvantages of proof guidance or the manual set-cover approach of strategy scheduling.
+This represents a mixture of approaches: a limited amount of ``slow'', guided reasoning followed by unguided, brute-force reasoning.
 
 \subsection{Conclusion}
 ATP systems augmented with learned knowledge have a promising future.
-I discuss future directions for the area based on theoretical, practical and experimental results of preceding subsections.
+I discuss future directions for the area based on theoretical, practical and experimental results of preceding chapters.
 
 \section{Planning}
-Given the relatively concise, self-contained nature of the proposed chapters, I estimate conservatively that one chapter may be written per month, starting immediately after this progress checkpoint.
-This puts me on-schedule to complete and submit the thesis within the year, with some buffer time for unexpected incidents.
+Given the relatively concise, self-contained nature of the proposed chapters, I estimate that one chapter may be written per month, starting immediately after this progress checkpoint.
+This puts me on-schedule to complete and submit the thesis within the year, with some buffer time for the usual unexpected incidents.
 Figure \ref{fig:deps} shows dependencies between chapters.
 \begin{figure}
 	\centering
-	\includegraphics[width=0.5\linewidth]{dependencies}
+	\includegraphics[width=0.7\linewidth]{dependencies}
 	\caption{\(X \rightarrow Y\) means ``Chapter X must be written before Chapter Y''.}
 	\label{fig:deps}
 \end{figure}
